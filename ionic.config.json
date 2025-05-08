@@ -1,0 +1,7 @@
+{
+  "name": "AbuyogMCR",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
