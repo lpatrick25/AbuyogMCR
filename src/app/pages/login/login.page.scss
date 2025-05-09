@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+ion-content {
+  --background: linear-gradient(135deg, #800000, #FFD700);
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.card-header {
+  background-color: #800000;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: #ffffff;
+}
+
+.app-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #FFD700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin-bottom: 1rem;
+}
+
+.header-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.divider {
+  width: 50px;
+  height: 4px;
+  background: #FFD700;
+  margin: 1rem auto 0;
+  border-radius: 2px;
+}
+
+ion-card-content {
+  padding: 2rem;
+}
+
+.input-item {
+  --background: #F3F4F6;
+  --border-radius: 10px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  border: 1px solid #E5E7EB;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.3s ease;
+}
+
+.input-item:hover,
+.input-item.ion-focused {
+  border-color: #800000;
+}
+
+ion-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #4B5563;
+}
+
+ion-input {
+  --color: #111827;
+  --placeholder-color: #9CA3AF;
+  --placeholder-opacity: 1;
+  font-size: 1rem;
+}
+
+.forgot-password {
+  text-align: right;
+  margin: 0.75rem 0 1.5rem;
+}
+
+.forgot-password a {
+  color: #800000;
+  font-size: 0.9rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.forgot-password a:hover {
+  color: #660000;
+}
+
+.login-button {
+  --background: #800000;
+  --border-radius: 12px;
+  --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 0.9rem;
+  transition: transform 0.2s ease;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  --background: linear-gradient(135deg, #800000, #660000);
+}
+
+.login-button:active {
+  transform: scale(0.98);
+}
+
+ion-spinner {
+  margin-right: 8px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    margin: 0 12px;
+  }
+
+  ion-card-content {
+    padding: 1.5rem;
+  }
+
+  .header-title {
+    font-size: 1.5rem;
+  }
+
+  .app-logo {
+    width: 80px;
+    height: 80px;
+  }
+
+  .login-button {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+}

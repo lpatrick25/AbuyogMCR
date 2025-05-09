@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+ion-app {
+  background: linear-gradient(135deg, #800000, #FFD700);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.center-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+ion-content {
+  --background: rgba(84, 77, 77, 0.6);
+  background-image: url('/assets/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+}
+
+.logo-container {
+  margin-bottom: 30px;
+  animation: fadeIn 1s ease-in;
+}
+
+.logo {
+  max-width: 180px;
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+.loading-message {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: #FFD700;
+  margin-top: 20px;
+  font-family: 'Inter', sans-serif;
+  animation: fadeIn 1.5s ease-in;
+}
+
+.network-check-animation ion-spinner {
+  --color: #FFD700;
+  width: 50px;
+  height: 50px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .loading-message {
+    font-size: 1rem;
+  }
+
+  .logo {
+    max-width: 140px;
+  }
+}

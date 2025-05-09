@@ -1,0 +1,43 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button [text]="" defaultHref="/home" color="warning"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Document Result</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-spinner *ngIf="loading" name="crescent" class="center-spinner"></ion-spinner>
+  <ion-grid *ngIf="!loading">
+    <ion-row class="ion-align-items-center">
+      <ion-col size="12" size-sm="6" size-md="4" *ngFor="let pageDataResult of pageImagePreviews">
+        <ion-card class="page-card" (click)="onPageSelect(pageDataResult.page)">
+          <ion-img [src]="pageDataResult.pagePreviewWebViewPath" alt="Page Preview"></ion-img>
+          <!-- <ion-card-content>
+            <ion-text>Page {{ pageDataResult.page.pageId }}</ion-text>
+          </ion-card-content> -->
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+
+<ion-footer class="app-footer">
+  <ion-toolbar>
+    <ion-buttons>
+      <ion-button class="footer-button" (click)="onContinueScanning()">
+        <ion-icon name="camera-outline" slot="start"></ion-icon>
+        Continue Scanning
+      </ion-button>
+      <ion-button class="footer-button" (click)="onAddPage()">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Add Page
+      </ion-button>
+      <ion-button class="footer-button" (click)="onExport()">
+        <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+        Upload
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

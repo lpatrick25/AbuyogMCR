@@ -35,3 +35,18 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+:root {
+  --primary-color: #800000; // Maroon
+  --accent-color: #FFD700; // Gold
+}
+
+ion-toolbar {
+  --background: var(--primary-color);
+  --color: #ffffff;
+}
+
+.submit-button {
+  --background: var(--accent-color);
+  --color: var(--primary-color);
+}

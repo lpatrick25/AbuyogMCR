@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Select Documents</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()" fill="clear" color="light" aria-label="Close modal">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="card-container">
+    <ion-card class="feature-card" button *ngFor="let doc of documents" (click)="selectDocument(doc.type, doc.title)" role="button"
+      [attr.aria-label]="'Select ' + doc.title">
+      <ion-card-content class="card-content">
+        <ion-icon [name]="doc.icon" class="card-icon"></ion-icon>
+        <ion-label class="card-title">{{ doc.title }}</ion-label>
+        <p class="card-description">{{ doc.description }}</p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

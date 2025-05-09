@@ -1,0 +1,84 @@
+<ng-container *ngIf="networkStatus">
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-buttons slot="start" *ngIf="selectedPhoneNumber">
+        <ion-button (click)="goBack()">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-buttons slot="start" *ngIf="!selectedPhoneNumber">
+        <ion-back-button defaultHref="/home" aria-label="Back to previous page"></ion-back-button>
+      </ion-buttons>
+
+      <ion-title>
+        <ion-icon name="chatbubbles-outline" class="header-icon"></ion-icon>
+        {{ selectedPhoneNumber ? selectedPhoneNumber : 'Sent Messages' }}
+      </ion-title>
+
+      <ion-buttons slot="end" *ngIf="!selectedPhoneNumber">
+        <ion-button color="light" (click)="pendingMessages()" title="Pending Messages">
+          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+        </ion-button>
+        <ion-button color="light" (click)="presentSettingsModal()" title="Settings">
+          <ion-icon name="settings-outline" slot="start"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <ng-container *ngIf="!selectedPhoneNumber">
+      <ion-list *ngIf="objectKeys(groupedMessages).length > 0; else noMessages">
+        <ion-item *ngFor="let phone of objectKeys(groupedMessages)" class="message-item">
+          <ion-avatar slot="start" (click)="selectPhoneNumber(phone)">
+            <ion-icon name="person-circle-outline" size="large"></ion-icon>
+          </ion-avatar>
+          <ion-label (click)="selectPhoneNumber(phone)">
+            <h2>{{ phone }}</h2>
+            <p>{{ groupedMessages[phone][groupedMessages[phone].length - 1]?.message | truncate: 50 }}</p>
+          </ion-label>
+          <ion-button slot="end" fill="clear" color="danger" (click)="confirmDeleteGroup(phone)">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+
+      <ng-template #noMessages>
+        <div class="no-messages-container">
+          <ion-icon name="mail-open-outline" class="no-msg-icon"></ion-icon>
+          <ion-text color="medium">
+            <h3>No Sent Messages</h3>
+            <p>Send a message to see it here!</p>
+          </ion-text>
+        </div>
+      </ng-template>
+
+      <ion-spinner *ngIf="loading" name="crescent" class="center-spinner"></ion-spinner>
+    </ng-container>
+
+    <ng-container *ngIf="selectedPhoneNumber">
+      <ion-list>
+        <ion-item *ngFor="let msg of groupedMessages[selectedPhoneNumber]" class="message-item">
+          <ion-label>
+            <h3>{{ msg.sentAt | date:'medium' }}</h3>
+            <p>{{ msg.message }}</p>
+          </ion-label>
+          <ion-button slot="end" fill="clear" color="danger" (click)="confirmDeleteMessage(msg.id)">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+    </ng-container>
+
+    <ion-refresher slot="fixed" (ionRefresh)="refreshMessages($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+  </ion-content>
+</ng-container>
+
+<div *ngIf="!networkStatus" class="offline-container">
+  <ion-icon name="wifi-off-outline" size="large" color="danger"></ion-icon>
+  <h2>Offline</h2>
+  <p>Please check your internet connection.</p>
+  <ion-button color="primary" (click)="checkConnection()">Retry</ion-button>
+</div>

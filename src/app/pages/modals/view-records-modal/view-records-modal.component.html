@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Document Details</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ document.full_name }}</ion-card-title>
+      <ion-card-subtitle>{{ document.document_type }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>First Name:</strong> {{ document.first_name }}</p>
+      <p><strong>Middle Name:</strong> {{ document.middle_name || 'N/A' }}</p>
+      <p><strong>Last Name:</strong> {{ document.last_name }}</p>
+      <p><strong>Suffix:</strong> {{ document.suffix || 'N/A' }}</p>
+      <p><strong>Date of Birth:</strong> {{ document.dob }}</p>
+      <p><strong>Place of Birth:</strong> {{ document.place_of_birth }}</p>
+      <p><strong>Father's Name:</strong> {{ document.father_name }}</p>
+      <p><strong>Mother's Name:</strong> {{ document.mother_name }}</p>
+      <p><strong>Registry Number:</strong> {{ document.registry_number }}</p>
+
+      <!-- Display the TIFF image if it's a TIFF -->
+      <ion-img *ngIf="isTiffFile" [src]="document.processedTiffUrl || document.image_url" alt="TIFF Document"></ion-img>
+
+      <!-- Display the PDF as a canvas -->
+      <div *ngIf="!isTiffFile">
+        <canvas id="pdf-canvas" *ngIf="pdfLoaded"></canvas>
+        <ion-spinner *ngIf="!pdfLoaded" name="crescent"></ion-spinner>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

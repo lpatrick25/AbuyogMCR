@@ -1,0 +1,97 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" aria-label="Back to previous page"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <ion-icon name="scan-outline" class="header-icon"></ion-icon>
+      {{ documentTitle }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="light" (click)="presentSettingsModal()" title="Settings">
+        <ion-icon name="settings-outline" slot="start"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="form-container">
+    <h2 class="form-heading">Document Form: {{ documentTitle }}</h2>
+    <form [formGroup]="form" (ngSubmit)="submitForm()">
+      <ion-list lines="full">
+        <ion-item [class.invalid]="form.get('firstName')?.invalid && (form.get('firstName')?.touched || formSubmitted)">
+          <ion-label position="floating">First Name *</ion-label>
+          <ion-input formControlName="firstName" type="text" placeholder="Enter first name"
+            aria-required="true"></ion-input>
+          <ion-text color="danger"
+            *ngIf="form.get('firstName')?.invalid && (form.get('firstName')?.touched || formSubmitted)">
+            First Name is required
+          </ion-text>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Middle Name</ion-label>
+          <ion-input formControlName="middleName" type="text" placeholder="Enter middle name"></ion-input>
+        </ion-item>
+        <ion-item [class.invalid]="form.get('lastName')?.invalid && (form.get('lastName')?.touched || formSubmitted)">
+          <ion-label position="floating">Last Name *</ion-label>
+          <ion-input formControlName="lastName" type="text" placeholder="Enter last name"
+            aria-required="true"></ion-input>
+          <ion-text color="danger"
+            *ngIf="form.get('lastName')?.invalid && (form.get('lastName')?.touched || formSubmitted)">
+            Last Name is required
+          </ion-text>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Suffix</ion-label>
+          <ion-input formControlName="suffix" type="text" placeholder="e.g., Jr., Sr."></ion-input>
+        </ion-item>
+        <ion-item [class.invalid]="form.get('dob')?.invalid && (form.get('dob')?.touched || formSubmitted)">
+          <ion-label position="floating">Date of Birth *</ion-label>
+          <ion-datetime formControlName="dob" displayFormat="MMM DD, YYYY" placeholder="Select date"
+            aria-required="true"></ion-datetime>
+          <ion-text color="danger" *ngIf="form.get('dob')?.invalid && (form.get('dob')?.touched || formSubmitted)">
+            Date of Birth is required
+          </ion-text>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Place of Birth *</ion-label>
+          <ion-input formControlName="placeOfBirth" type="text" placeholder="Enter place of birth"></ion-input>
+          <ion-text color="danger"
+            *ngIf="form.get('placeOfBirth')?.invalid && (form.get('placeOfBirth')?.touched || formSubmitted)">
+            Place of Birth is required
+          </ion-text>
+        </ion-item>
+        <ion-item *ngIf="documentType !== 'marriage'">
+          <ion-label position="floating">Father's Name</ion-label>
+          <ion-input formControlName="fatherName" type="text" placeholder="Enter father's name"></ion-input>
+        </ion-item>
+        <ion-item *ngIf="documentType !== 'marriage'">
+          <ion-label position="floating">Mother's Name</ion-label>
+          <ion-input formControlName="motherName" type="text" placeholder="Enter mother's name"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Registry Number *</ion-label>
+          <ion-input formControlName="registryNumber" type="number" inputmode="numeric" pattern="[0-9]*"
+            placeholder="Enter registry number">
+          </ion-input>
+          <ion-text color="danger"
+            *ngIf="form.get('registryNumber')?.invalid && (form.get('registryNumber')?.touched || formSubmitted)">
+            Registry Number is required
+          </ion-text>
+        </ion-item>
+      </ion-list>
+      <div class="button-container">
+        <ion-button type="submit" expand="block" color="warning" [disabled]="loading" class="submit-button"
+          aria-label="Submit form">
+          <ion-spinner name="crescent" *ngIf="loading"></ion-spinner>
+          <span *ngIf="!loading">Submit</span>
+        </ion-button>
+        <ion-button expand="block" fill="outline" color="medium" (click)="cancel()" class="cancel-button"
+          aria-label="Cancel and return">
+          Cancel
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>

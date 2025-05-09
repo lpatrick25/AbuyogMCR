@@ -1,0 +1,48 @@
+<ng-container *ngIf="networkStatus">
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>
+        <ion-icon name="chatbubbles-outline" class="header-icon"></ion-icon>
+        Abuyog MCR
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button color="light" (click)="presentSettingsModal()" title="Settings">
+          <ion-icon name="settings-outline" slot="start"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <div class="card-container">
+      <ion-card class="feature-card" button (click)="navigateTo('pending')" role="button"
+        aria-label="Navigate to Pending Request">
+        <ion-card-content class="card-content">
+          <ion-icon name="mail-outline" class="card-icon"></ion-icon>
+          <ion-label class="card-title">Pending Request</ion-label>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="feature-card" button (click)="presentDocuments()" role="button"
+        aria-label="Navigate to Document Scanner">
+        <ion-card-content class="card-content">
+          <ion-icon name="scan-outline" class="card-icon"></ion-icon>
+          <ion-label class="card-title">Document Scanner</ion-label>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="feature-card" button (click)="navigateTo('records')" role="button"
+        aria-label="Navigate to Pending Request">
+        <ion-card-content class="card-content">
+          <ion-icon name="mail-outline" class="card-icon"></ion-icon>
+          <ion-label class="card-title">Municipal Records</ion-label>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </ion-content>
+</ng-container>
+
+<div *ngIf="!networkStatus" class="offline-container">
+  <ion-icon name="wifi-off-outline" size="large" color="danger"></ion-icon>
+  <h2>Offline</h2>
+  <p>Please check your internet connection.</p>
+  <ion-button color="primary" (click)="checkConnection()">Retry</ion-button>
+</div>

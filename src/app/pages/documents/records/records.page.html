@@ -1,0 +1,58 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" aria-label="Back to home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <ion-icon name="document-outline" class="header-icon"></ion-icon>
+      Municipal Records
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="light" (click)="presentSettingsModal()" aria-label="Open settings">
+        <ion-icon name="settings-outline" slot="start"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true">
+  <!-- Search Bar -->
+  <ion-searchbar [(ngModel)]="searchText" debounce="300" (ionInput)="filterDocuments()"
+    placeholder="Search by name or document type" showClearButton="focus" class="search-bar"></ion-searchbar>
+
+  <!-- Loading Spinner -->
+  <ion-spinner *ngIf="isLoading" name="crescent" class="center-spinner"></ion-spinner>
+
+  <!-- No Documents Found -->
+  <ion-card class="feature-card" *ngIf="filteredDocuments.length === 0 && !isLoading" role="button">
+    <ion-card-content class="card-content">
+      <ion-icon name="document-outline" class="card-icon"></ion-icon>
+      <ion-label class="card-title">No documents found matching your search.</ion-label>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Document Grid -->
+  <ion-grid *ngIf="filteredDocuments.length > 0 && !isLoading">
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-sm="6" size-md="4" *ngFor="let doc of filteredDocuments">
+        <ion-card (click)="openDocumentModal(doc)" class="doc-card">
+          <ion-img *ngIf="!isTiff(doc.image_url)" [src]="doc.image_url" alt="{{ formatText(getFullName(doc)) }} Image"
+            class="doc-image"></ion-img>
+          <ion-img *ngIf="isTiff(doc.image_url)" [src]="doc.processedTiffUrl"
+            alt="{{ formatText(getFullName(doc)) }} TIFF Image" class="doc-image"></ion-img>
+          <ion-card-header>
+            <ion-card-title class="doc-name">{{ formatText(getFullName(doc)) }}</ion-card-title>
+            <ion-card-subtitle class="doc-type">{{ formatText(doc.document_type) }}</ion-card-subtitle>
+          </ion-card-header>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Infinite Scroll -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreDocuments($event)"
+    [disabled]="isLoadingMore || currentPage >= lastPage">
+    <ion-infinite-scroll-content loadingSpinner="bubbles"
+      loadingText="Loading more documents..."></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

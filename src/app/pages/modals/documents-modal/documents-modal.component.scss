@@ -1,0 +1,78 @@
+ion-toolbar {
+  --background: #800000; // Maroon
+  --color: #ffffff; // White text
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --border-radius: 0 0 12px 12px; // Rounded bottom corners
+}
+
+ion-content {
+  --background: #f4f4f4; // Light gray background
+  --padding-top: 24px;
+  --padding-bottom: 24px;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: #ffffff; // White background
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); // Softer shadow
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+  overflow: hidden; // Prevent content overflow
+
+  &:hover {
+    transform: translateY(-4px); // Lift effect
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); // Enhanced shadow
+    background: #FFF9E6; // Light gold tint
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .card-icon {
+    font-size: 48px;
+    color: #800000; // Maroon
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333; // Dark gray
+    margin-bottom: 8px;
+  }
+
+  .card-description {
+    font-size: 14px;
+    font-weight: 400;
+    color: #666; // Medium gray
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .card-container {
+    grid-template-columns: 1fr; // Single column on small screens
+    padding: 12px;
+  }
+
+  .feature-card {
+    margin: 0 auto;
+    width: 100%;
+  }
+}

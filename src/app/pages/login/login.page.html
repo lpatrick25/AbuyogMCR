@@ -1,0 +1,36 @@
+<ion-content fullscreen>
+  <div class="auth-container">
+    <ion-card class="login-card">
+      <div class="card-header">
+        <img src="assets/icon.png" alt="App Logo" class="app-logo" />
+        <h1 class="header-title">SMS API Portal</h1>
+        <div class="divider"></div>
+      </div>
+
+      <ion-card-content>
+        <form (ngSubmit)="login()">
+          <ion-item class="input-item" lines="none">
+            <ion-label position="floating">Email Address</ion-label>
+            <ion-input [(ngModel)]="email" name="email" type="email" placeholder="Enter your email"
+              required></ion-input>
+          </ion-item>
+
+          <ion-item class="input-item" lines="none">
+            <ion-label position="floating">Password</ion-label>
+            <ion-input [(ngModel)]="password" name="password" type="password" placeholder="Enter your password"
+              required></ion-input>
+          </ion-item>
+
+          <div class="forgot-password">
+            <a (click)="forgotPassword()">Forgot Password?</a>
+          </div>
+
+          <ion-button expand="block" type="submit" [disabled]="loading" class="login-button">
+            <ion-spinner name="crescent" *ngIf="loading"></ion-spinner>
+            {{ loading ? 'Logging in...' : 'Login' }}
+          </ion-button>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
