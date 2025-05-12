@@ -1,9 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController, NavController, ToastController } from '@ionic/angular';
+import {
+  ModalController,
+  NavController,
+  ToastController,
+} from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ScanbotSDK, ScanbotSdkConfiguration } from 'capacitor-plugin-scanbot-sdk';
+import {
+  ScanbotSDK,
+  ScanbotSdkConfiguration,
+} from 'capacitor-plugin-scanbot-sdk';
 import {
   DocumentScanningFlow,
   PageSnapFunnelAnimation,
@@ -43,20 +50,20 @@ export class FormPage implements OnInit {
   hasSubmitted: boolean = false;
 
   readonly licenseKey =
-    "Qnzs6xHmHwZyWhzt3Ualnz4vPDtH5U" +
-    "LfNytUl+Mz9I5r/GKW/xMTNdfIqSvG" +
-    "vfjdt4egkLYQviTV/k8gTboDc/LrbJ" +
-    "4FCklIzplBanuPKchif9XiK0jE+QFp" +
-    "klkRem5hw9y+xM+6Yk0lSZxrGzdMn+" +
-    "Jn/O+DLTF0lkEDql0eUhoooe9k9ibG" +
-    "LtCW2AFrxKC4Uuq/aO5sq9HX/RDZWm" +
-    "EirEdqfZgefaygbH21NBPK1pCEi+ae" +
-    "B6kLkGPXNjz3KakwjXgOaUnJrJIH73" +
-    "CHvPrsjAmCIpchRMKlBigh6uGcmglv" +
-    "MNbdNny257MHOcz7oN8Y2mVyH11pay" +
-    "w564sz1p5qhw==\nU2NhbmJvdFNESw" +
-    "pjb20uY2Fwc3RvbmUucHJvamVjdAox" +
-    "NzQ3NDM5OTk5CjgzODg2MDcKMTk=\n";
+    'Qnzs6xHmHwZyWhzt3Ualnz4vPDtH5U' +
+    'LfNytUl+Mz9I5r/GKW/xMTNdfIqSvG' +
+    'vfjdt4egkLYQviTV/k8gTboDc/LrbJ' +
+    '4FCklIzplBanuPKchif9XiK0jE+QFp' +
+    'klkRem5hw9y+xM+6Yk0lSZxrGzdMn+' +
+    'Jn/O+DLTF0lkEDql0eUhoooe9k9ibG' +
+    'LtCW2AFrxKC4Uuq/aO5sq9HX/RDZWm' +
+    'EirEdqfZgefaygbH21NBPK1pCEi+ae' +
+    'B6kLkGPXNjz3KakwjXgOaUnJrJIH73' +
+    'CHvPrsjAmCIpchRMKlBigh6uGcmglv' +
+    'MNbdNny257MHOcz7oN8Y2mVyH11pay' +
+    'w564sz1p5qhw==\nU2NhbmJvdFNESw' +
+    'pjb20uY2Fwc3RvbmUucHJvamVjdAox' +
+    'NzQ3NDM5OTk5CjgzODg2MDcKMTk=\n';
 
   static readonly FILE_ENCRYPTION_ENABLED: boolean = false;
 
@@ -112,27 +119,90 @@ export class FormPage implements OnInit {
 
     this.loading = true;
     try {
+      // const configuration = new DocumentScanningFlow();
+      // configuration.outputSettings.pagesScanLimit = 1;
+      // configuration.screens.review.enabled = false;
+      // configuration.screens.camera.cameraConfiguration.autoSnappingEnabled = true;
+      // configuration.screens.camera.captureFeedback.snapFeedbackMode = new PageSnapFunnelAnimation({});
+      // // configuration.screens.camera.captureFeedback.snapFeedbackMode =
+      // //   new PageSnapFunnelAnimation({}); // or use PageSnapCheckMarkAnimation({})
+      // configuration.screens.camera.bottomBar.autoSnappingModeButton.visible = false;
+      // configuration.screens.camera.bottomBar.manualSnappingModeButton.visible = false;
+      // configuration.screens.camera.bottomBar.importButton.title.visible = true;
+      // configuration.screens.camera.bottomBar.torchOnButton.title.visible = true;
+      // configuration.screens.camera.bottomBar.torchOffButton.title.visible = true;
+      // configuration.palette.sbColorPrimary = '#800000';
+      // configuration.palette.sbColorOnPrimary = '#ffffff';
+      // configuration.screens.camera.userGuidance.statesTitles.tooDark = 'Need more lighting to detect a document';
+      // configuration.screens.camera.userGuidance.statesTitles.tooSmall = 'Document too small';
+      // configuration.screens.camera.userGuidance.statesTitles.noDocumentFound = 'Could not detect a document';
+
+      // const documentResult = await startDocumentScanner(configuration);
+      // if (documentResult.status !== 'OK') {
+      //   throw new Error('Document scanning cancelled or failed');
+      // }
+      /**
+       * Create the document configuration object and
+       * start the document scanner with the configuration
+       */
       const configuration = new DocumentScanningFlow();
-      configuration.outputSettings.pagesScanLimit = 1;
-      configuration.screens.review.enabled = false;
-      configuration.screens.camera.cameraConfiguration.autoSnappingEnabled = true;
-      configuration.screens.camera.captureFeedback.snapFeedbackMode = new PageSnapFunnelAnimation({});
-      // configuration.screens.camera.captureFeedback.snapFeedbackMode =
-      //   new PageSnapFunnelAnimation({}); // or use PageSnapCheckMarkAnimation({})
-      configuration.screens.camera.bottomBar.autoSnappingModeButton.visible = false;
-      configuration.screens.camera.bottomBar.manualSnappingModeButton.visible = false;
-      configuration.screens.camera.bottomBar.importButton.title.visible = true;
-      configuration.screens.camera.bottomBar.torchOnButton.title.visible = true;
-      configuration.screens.camera.bottomBar.torchOffButton.title.visible = true;
-      configuration.palette.sbColorPrimary = '#800000';
+      // Enable the multiple page behavior
+      configuration.outputSettings.pagesScanLimit = 0;
+
+      // Enable/Disable Auto Snapping behavior
+      configuration.screens.camera.cameraConfiguration.autoSnappingEnabled =
+        true;
+
+      // Hide/Reveal the auto snapping enable/disable button
+      configuration.screens.camera.bottomBar.autoSnappingModeButton.visible =
+        true;
+      configuration.screens.camera.bottomBar.manualSnappingModeButton.visible =
+        true;
+
+      // Set colors
+      configuration.palette.sbColorPrimary = "#800000";
       configuration.palette.sbColorOnPrimary = '#ffffff';
-      configuration.screens.camera.userGuidance.statesTitles.tooDark = 'Need more lighting to detect a document';
-      configuration.screens.camera.userGuidance.statesTitles.tooSmall = 'Document too small';
-      configuration.screens.camera.userGuidance.statesTitles.noDocumentFound = 'Could not detect a document';
+
+      // Configure the hint texts for different scenarios
+      configuration.screens.camera.userGuidance.statesTitles.tooDark =
+        'Need more lighting to detect a document';
+      configuration.screens.camera.userGuidance.statesTitles.tooSmall =
+        'Document too small';
+      configuration.screens.camera.userGuidance.statesTitles.noDocumentFound =
+        'Could not detect a document';
+
+      // Enable/Disable the review screen.
+      configuration.screens.review.enabled = true;
+
+      // Configure bottom bar (further properties like title, icon and  background can also be set for these buttons)
+      configuration.screens.review.bottomBar.addButton.visible = true;
+      configuration.screens.review.bottomBar.retakeButton.visible = true;
+      configuration.screens.review.bottomBar.cropButton.visible = true;
+      configuration.screens.review.bottomBar.rotateButton.visible = true;
+      configuration.screens.review.bottomBar.deleteButton.visible = true;
+
+      // Configure `more` popup on review screen
+      configuration.screens.review.morePopup.reorderPages.icon.visible = true;
+      configuration.screens.review.morePopup.deleteAll.icon.visible = true;
+      configuration.screens.review.morePopup.deleteAll.title.text =
+        'Delete all pages';
+
+      // Configure reorder pages screen
+      configuration.screens.reorderPages.topBarTitle.text = 'Reorder Pages';
+      configuration.screens.reorderPages.guidance.title.text = 'Reorder Pages';
+
+      // Configure cropping screen
+      configuration.screens.cropping.topBarTitle.text = 'Cropping Screen';
+      configuration.screens.cropping.bottomBar.resetButton.visible = true;
+      configuration.screens.cropping.bottomBar.rotateButton.visible = true;
+      configuration.screens.cropping.bottomBar.detectButton.visible = true;
 
       const documentResult = await startDocumentScanner(configuration);
-      if (documentResult.status !== 'OK') {
-        throw new Error('Document scanning cancelled or failed');
+      /**
+       * Handle the result if result status is OK
+       */
+      if (documentResult.status === 'OK') {
+        this.router.navigate(['/document-result', documentResult.uuid]);
       }
 
       const submission: DocumentSubmission = {
@@ -149,7 +219,10 @@ export class FormPage implements OnInit {
       });
     } catch (error: any) {
       console.error('Form submission error:', error);
-      await this.showToast(`Failed to submit document: ${error.message || 'Unknown error'}`, 'danger');
+      await this.showToast(
+        `Failed to submit document: ${error.message || 'Unknown error'}`,
+        'danger'
+      );
     } finally {
       this.loading = false;
     }
@@ -165,8 +238,12 @@ export class FormPage implements OnInit {
       storageImageFormat: 'JPG',
       storageImageQuality: 80,
       documentDetectorMode: 'ML_BASED',
-      fileEncryptionMode: FormPage.FILE_ENCRYPTION_ENABLED ? 'AES256' : undefined,
-      fileEncryptionPassword: FormPage.FILE_ENCRYPTION_ENABLED ? 'SomeSecretPa$$w0rdForFileEncryption' : undefined,
+      fileEncryptionMode: FormPage.FILE_ENCRYPTION_ENABLED
+        ? 'AES256'
+        : undefined,
+      fileEncryptionPassword: FormPage.FILE_ENCRYPTION_ENABLED
+        ? 'SomeSecretPa$$w0rdForFileEncryption'
+        : undefined,
     };
 
     try {
@@ -223,7 +300,6 @@ export class FormPage implements OnInit {
         } else {
           this.showToast('Invalid license key format.', 'danger');
         }
-
       } else {
         this.showToast('Using default license key.', 'success');
       }
@@ -254,7 +330,10 @@ export class FormPage implements OnInit {
    * @param message The message to display.
    * @param color The toast color (primary, success, warning, danger).
    */
-  private async showToast(message: string, color: string = 'primary'): Promise<void> {
+  private async showToast(
+    message: string,
+    color: string = 'primary'
+  ): Promise<void> {
     const toast = await this.toastCtrl.create({
       message,
       duration: 3000,
