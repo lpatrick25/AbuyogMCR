@@ -45,7 +45,7 @@ export interface ImageFilter {
 })
 export class ScanbotUtils {
 
-    private modalCtrl = inject(ModalController);
+    private modalController = inject(ModalController);
 
     constructor() {
     }
@@ -88,7 +88,7 @@ export class ScanbotUtils {
     }
 
     async chooseFilter(): Promise<ParametricFilter | undefined> {
-        const filterModal = await this.modalCtrl.create({
+        const filterModal = await this.modalController.create({
             component: ImageFilterComponent,
             id: 'image-filter',
             backdropDismiss: true,

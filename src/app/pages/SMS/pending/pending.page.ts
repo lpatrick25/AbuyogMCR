@@ -11,6 +11,7 @@ import { ConnectivityService } from 'src/app/services/connectivity.service';
 import { ApiUrlModalComponent } from '../../modals/api-url-modal/api-url-modal.component';
 import { SettingsModalComponent } from '../../modals/settings-modal/settings-modal.component';
 import { Router } from '@angular/router';
+import { LicenseKeyModalComponent } from '../../modals/license-key-modal/license-key-modal.component';
 
 @Component({
   selector: 'app-pending',
@@ -25,6 +26,7 @@ export class PendingPage implements OnInit, OnDestroy {
   private intervalSubscription?: Subscription;
   private isProcessing = false;
   defaultApiUrl = environment.apiUrl;
+  defaultLicenseKey = environment.licenseKey;
 
   constructor(
     private smsService: SmsService,
@@ -32,10 +34,10 @@ export class PendingPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private toastCtrl: ToastController,
     private authService: AuthService,
-    private modalCtrl: ModalController,
+    private modalController: ModalController,
     private connectivityService: ConnectivityService,
-    private router: Router,
-  ) { }
+    private router: Router
+  ) {}
 
   async checkConnection() {
     this.networkStatus = await this.connectivityService.checkNetworkStatus();
@@ -56,11 +58,13 @@ export class PendingPage implements OnInit, OnDestroy {
     permissions.forEach((permission) => {
       this.androidPermissions.checkPermission(permission).then((result) => {
         if (!result.hasPermission) {
-          this.androidPermissions.requestPermission(permission).then((requestResult) => {
-            if (!requestResult.hasPermission) {
-              this.showPermissionAlert();
-            }
-          });
+          this.androidPermissions
+            .requestPermission(permission)
+            .then((requestResult) => {
+              if (!requestResult.hasPermission) {
+                this.showPermissionAlert();
+              }
+            });
         }
       });
     });
@@ -93,7 +97,9 @@ export class PendingPage implements OnInit, OnDestroy {
       .pipe(switchMap(() => this.smsService.getPendingSmsRequests()))
       .subscribe({
         next: async (data) => {
-          this.pendingSmsRequests = data.filter((sms) => sms.status === 'pending');
+          this.pendingSmsRequests = data.filter(
+            (sms) => sms.status === 'pending'
+          );
           this.loading = false;
 
           if (this.pendingSmsRequests.length > 0 && !this.isProcessing) {
@@ -138,7 +144,7 @@ export class PendingPage implements OnInit, OnDestroy {
   }
 
   async presentSettingsModal() {
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalController.create({
       component: SettingsModalComponent,
       cssClass: 'settings-modal',
     });
@@ -147,6 +153,8 @@ export class PendingPage implements OnInit, OnDestroy {
       const action = result.data?.action;
       if (action === 'setApiUrl') {
         this.presentApiUrlDialog();
+      } else if (action === 'setLicenseKey') {
+        this.presentLicenseKeyDialog();
       } else if (action === 'logout') {
         this.authService.logout();
       }
@@ -157,7 +165,7 @@ export class PendingPage implements OnInit, OnDestroy {
 
   async presentApiUrlDialog() {
     const storedUrl = localStorage.getItem('customApiUrl') || '';
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalController.create({
       component: ApiUrlModalComponent,
       cssClass: 'api-url-modal',
       componentProps: {
@@ -171,12 +179,51 @@ export class PendingPage implements OnInit, OnDestroy {
         localStorage.setItem('customApiUrl', data.apiUrl.trim());
         this.showToast('API URL updated successfully.', 'success');
       } else {
-        localStorage.removeItem('customApiUrl');
+        // localStorage.removeItem('customApiUrl');
         this.showToast('Using default API URL.', 'success');
       }
     });
 
     await modal.present();
+  }
+
+  async presentLicenseKeyDialog(): Promise<void> {
+    const storedKey = localStorage.getItem('customLicenseKey') || '';
+    const modal = await this.modalController.create({
+      component: LicenseKeyModalComponent,
+      cssClass: 'api-url-modal',
+      componentProps: {
+        licenseKey: storedKey || this.defaultLicenseKey,
+      },
+    });
+
+    modal.onDidDismiss().then((result) => {
+      const data = result.data;
+      if (data?.licenseKey?.trim()) {
+        const sanitizedKey = this.sanitizeLicenseKey(data.licenseKey);
+
+        if (this.isValidLicenseKey(sanitizedKey)) {
+          localStorage.setItem('customLicenseKey', sanitizedKey);
+          this.showToast('License key updated successfully.', 'success');
+        } else {
+          this.showToast('Invalid license key format.', 'danger');
+        }
+      } else {
+        this.showToast('Using default license key.', 'success');
+      }
+    });
+
+    await modal.present();
+  }
+
+  sanitizeLicenseKey(input: string): string {
+    return input.trim().replace(/\s+/g, '');
+  }
+
+  isValidLicenseKey(key: string): boolean {
+    // Basic length check (Scanbot keys are long, usually >500 chars)
+    // You can also add more logic if Scanbot provides a regex or pattern
+    return typeof key === 'string' && key.length > 400;
   }
 
   async showPermissionAlert() {
@@ -198,4 +245,3 @@ export class PendingPage implements OnInit, OnDestroy {
     await toast.present();
   }
 }
-

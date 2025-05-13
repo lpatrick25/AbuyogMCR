@@ -1,5 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AlertController, ModalController, ToastController, Platform } from '@ionic/angular';
+import {
+  AlertController,
+  ModalController,
+  ToastController,
+  Platform,
+} from '@ionic/angular';
 import { Router } from '@angular/router';
 import { App } from '@capacitor/app';
 import { PluginListenerHandle } from '@capacitor/core';
@@ -9,12 +14,13 @@ import { SmsService } from 'src/app/services/sms.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ConnectivityService } from 'src/app/services/connectivity.service';
 import { environment } from 'src/environments/environment';
+import { LicenseKeyModalComponent } from '../../modals/license-key-modal/license-key-modal.component';
 
 @Component({
   selector: 'app-sent',
   templateUrl: './sent.page.html',
   styleUrls: ['./sent.page.scss'],
-  standalone: false
+  standalone: false,
 })
 export class SentPage implements OnInit, OnDestroy {
   groupedMessages: { [phoneNumber: string]: any[] } = {};
@@ -24,10 +30,11 @@ export class SentPage implements OnInit, OnDestroy {
   loading = true;
   networkStatus: boolean = true;
   private backButtonSub?: PluginListenerHandle;
+  defaultLicenseKey = environment.licenseKey;
 
   constructor(
     private smsService: SmsService,
-    private modalCtrl: ModalController,
+    private modalController: ModalController,
     private alertController: AlertController,
     private authService: AuthService,
     private toastCtrl: ToastController,
@@ -89,7 +96,8 @@ export class SentPage implements OnInit, OnDestroy {
   async fetchSentMessages() {
     try {
       const messages = await this.smsService.getSentMessages();
-      this.groupedMessages = this.smsService.groupMessagesByPhoneNumber(messages);
+      this.groupedMessages =
+        this.smsService.groupMessagesByPhoneNumber(messages);
     } catch (err) {
       console.error('Failed to load messages:', err);
       this.showToast('Failed to load messages.', 'danger');
@@ -101,7 +109,8 @@ export class SentPage implements OnInit, OnDestroy {
   async refreshMessages(event: any) {
     try {
       const messages = await this.smsService.getSentMessages();
-      this.groupedMessages = this.smsService.groupMessagesByPhoneNumber(messages);
+      this.groupedMessages =
+        this.smsService.groupMessagesByPhoneNumber(messages);
     } catch (err) {
       this.showToast('Failed to refresh messages.', 'danger');
     } finally {
@@ -132,7 +141,8 @@ export class SentPage implements OnInit, OnDestroy {
 
   async deleteMessage(messageId: number) {
     try {
-      if (!this.selectedPhoneNumber) throw new Error('No phone number selected');
+      if (!this.selectedPhoneNumber)
+        throw new Error('No phone number selected');
       await this.smsService.deleteSentMessage(messageId);
       this.groupedMessages[this.selectedPhoneNumber] = this.groupedMessages[
         this.selectedPhoneNumber
@@ -181,7 +191,7 @@ export class SentPage implements OnInit, OnDestroy {
   }
 
   async presentSettingsModal() {
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalController.create({
       component: SettingsModalComponent,
       cssClass: 'settings-modal',
     });
@@ -190,6 +200,8 @@ export class SentPage implements OnInit, OnDestroy {
       const action = result.data?.action;
       if (action === 'setApiUrl') {
         this.presentApiUrlDialog();
+      } else if (action === 'setLicenseKey') {
+        this.presentLicenseKeyDialog();
       } else if (action === 'logout') {
         this.authService.logout();
       }
@@ -200,7 +212,7 @@ export class SentPage implements OnInit, OnDestroy {
 
   async presentApiUrlDialog() {
     const storedUrl = localStorage.getItem('customApiUrl') || '';
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalController.create({
       component: ApiUrlModalComponent,
       cssClass: 'api-url-modal',
       componentProps: {
@@ -214,12 +226,51 @@ export class SentPage implements OnInit, OnDestroy {
         localStorage.setItem('customApiUrl', data.apiUrl.trim());
         this.showToast('API URL updated successfully.', 'success');
       } else {
-        localStorage.removeItem('customApiUrl');
+        // localStorage.removeItem('customApiUrl');
         this.showToast('Using default API URL.', 'success');
       }
     });
 
     await modal.present();
+  }
+
+  async presentLicenseKeyDialog(): Promise<void> {
+    const storedKey = localStorage.getItem('customLicenseKey') || '';
+    const modal = await this.modalController.create({
+      component: LicenseKeyModalComponent,
+      cssClass: 'api-url-modal',
+      componentProps: {
+        licenseKey: storedKey || this.defaultLicenseKey,
+      },
+    });
+
+    modal.onDidDismiss().then((result) => {
+      const data = result.data;
+      if (data?.licenseKey?.trim()) {
+        const sanitizedKey = this.sanitizeLicenseKey(data.licenseKey);
+
+        if (this.isValidLicenseKey(sanitizedKey)) {
+          localStorage.setItem('customLicenseKey', sanitizedKey);
+          this.showToast('License key updated successfully.', 'success');
+        } else {
+          this.showToast('Invalid license key format.', 'danger');
+        }
+      } else {
+        this.showToast('Using default license key.', 'success');
+      }
+    });
+
+    await modal.present();
+  }
+
+  sanitizeLicenseKey(input: string): string {
+    return input.trim().replace(/\s+/g, '');
+  }
+
+  isValidLicenseKey(key: string): boolean {
+    // Basic length check (Scanbot keys are long, usually >500 chars)
+    // You can also add more logic if Scanbot provides a regex or pattern
+    return typeof key === 'string' && key.length > 400;
   }
 
   private async showToast(message: string, color: string = 'primary') {

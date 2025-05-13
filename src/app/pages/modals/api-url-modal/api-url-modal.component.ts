@@ -13,13 +13,13 @@ import { IonicModule, ModalController } from '@ionic/angular';
 export class ApiUrlModalComponent {
   @Input() apiUrl: string = '';
 
-  constructor(private modalCtrl: ModalController) {}
+  constructor(private modalController: ModalController) {}
 
   dismiss() {
-    this.modalCtrl.dismiss();
+    this.modalController.dismiss();
   }
 
   save() {
-    this.modalCtrl.dismiss({ apiUrl: this.apiUrl });
+    this.modalController.dismiss({ apiUrl: this.apiUrl });
   }
 }

@@ -14,31 +14,33 @@ import { IonContent, IonIcon } from '@ionic/angular/standalone';
 })
 export class SettingsModalComponent {
   constructor(
-    private modalCtrl: ModalController,
+    private modalController: ModalController,
     private alertCtrl: AlertController,
     private router: Router // Inject Router
   ) { }
 
   // Check if the current route is /pending or /sent
   get showSetApiUrl(): boolean {
-    return this.router.url.includes('/pending') || this.router.url.includes('/sent');
+    // return this.router.url.includes('/pending') || this.router.url.includes('/sent');
+    return true;
   }
 
   // Check if the current route is /form
   get showSetLicenseKey(): boolean {
-    return this.router.url.includes('/document-form');
+    // return this.router.url.includes('/document-form');
+    return true;
   }
 
   dismiss() {
-    this.modalCtrl.dismiss();
+    this.modalController.dismiss();
   }
 
   onSetApiUrl() {
-    this.modalCtrl.dismiss({ action: 'setApiUrl' });
+    this.modalController.dismiss({ action: 'setApiUrl' });
   }
 
   onSetLicenseKey() {
-    this.modalCtrl.dismiss({ action: 'setLicenseKey' });
+    this.modalController.dismiss({ action: 'setLicenseKey' });
   }
 
   async onLogout() {
@@ -49,7 +51,7 @@ export class SettingsModalComponent {
         {
           text: 'Logout',
           role: 'destructive',
-          handler: () => this.modalCtrl.dismiss({ action: 'logout' }),
+          handler: () => this.modalController.dismiss({ action: 'logout' }),
         },
         { text: 'Cancel', role: 'cancel' },
       ],
