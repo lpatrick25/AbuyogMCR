@@ -6,6 +6,9 @@ import { RecordsService } from 'src/app/services/records.service';
 import { ViewRecordsModalComponent } from '../../modals/view-records-modal/view-records-modal.component';
 import { SettingsModalComponent } from '../../modals/settings-modal/settings-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { ApiUrlModalComponent } from '../../modals/api-url-modal/api-url-modal.component';
+import { environment } from 'src/environments/environment';
+import { LicenseKeyModalComponent } from '../../modals/license-key-modal/license-key-modal.component';
 
 interface Document {
   id?: number;
@@ -35,13 +38,15 @@ export class RecordsPage implements OnInit {
   currentPage: number = 1;
   lastPage: number = 1;
   private tiffCache: Map<string, string> = new Map();
+  defaultApiUrl = environment.apiUrl;
+  defaultLicenseKey = environment.licenseKey;
 
   constructor(
     private recordsService: RecordsService,
     private modalController: ModalController,
     private toastCtrl: ToastController,
     private authService: AuthService
-  ) { }
+  ) {}
 
   /**
    * Initializes the component and loads initial documents.
@@ -63,7 +68,9 @@ export class RecordsPage implements OnInit {
         return;
       }
 
-      const response = await this.recordsService.getDocumentsByPage(this.currentPage);
+      const response = await this.recordsService.getDocumentsByPage(
+        this.currentPage
+      );
       const newDocuments = (response.data?.data ?? []) as Document[];
       this.documents = [...this.documents, ...newDocuments];
       this.filteredDocuments = [...this.documents];
@@ -91,7 +98,10 @@ export class RecordsPage implements OnInit {
    * @param url The file URL.
    */
   isTiff(url: string): boolean {
-    return url?.toLowerCase().endsWith('.tif') || url?.toLowerCase().endsWith('.tiff');
+    return (
+      url?.toLowerCase().endsWith('.tif') ||
+      url?.toLowerCase().endsWith('.tiff')
+    );
   }
 
   /**
@@ -114,8 +124,16 @@ export class RecordsPage implements OnInit {
 
       UTIF.decodeImage(arrayBuffer, ifds[0]);
       const firstImage = ifds[0];
-      if (!firstImage || !firstImage.width || !firstImage.height || firstImage.width <= 0 || firstImage.height <= 0) {
-        throw new Error(`Invalid image dimensions: width=${firstImage?.width}, height=${firstImage?.height}`);
+      if (
+        !firstImage ||
+        !firstImage.width ||
+        !firstImage.height ||
+        firstImage.width <= 0 ||
+        firstImage.height <= 0
+      ) {
+        throw new Error(
+          `Invalid image dimensions: width=${firstImage?.width}, height=${firstImage?.height}`
+        );
       }
 
       const rgba = UTIF.toRGBA8(firstImage);
@@ -149,7 +167,9 @@ export class RecordsPage implements OnInit {
    */
   formatText(input: string): string {
     if (!input) return '';
-    return input.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+    return input
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
   /**
@@ -158,7 +178,9 @@ export class RecordsPage implements OnInit {
    */
   getFullName(doc: Document): string {
     const { first_name, middle_name, last_name, suffix } = doc;
-    return `${first_name} ${middle_name ?? ''} ${last_name} ${suffix ?? ''}`.trim();
+    return `${first_name} ${middle_name ?? ''} ${last_name} ${
+      suffix ?? ''
+    }`.trim();
   }
 
   /**
@@ -182,7 +204,10 @@ export class RecordsPage implements OnInit {
     this.filteredDocuments = this.documents.filter((doc) => {
       const fullName = this.getFullName(doc).toLowerCase();
       const documentType = doc.document_type.toLowerCase();
-      return fullName.includes(searchTextLower) || documentType.includes(searchTextLower);
+      return (
+        fullName.includes(searchTextLower) ||
+        documentType.includes(searchTextLower)
+      );
     });
   }
 
@@ -213,7 +238,7 @@ export class RecordsPage implements OnInit {
   /**
    * Opens the settings modal for logout or license key actions.
    */
-  async presentSettingsModal(): Promise<void> {
+  async presentSettingsModal() {
     const modal = await this.modalController.create({
       component: SettingsModalComponent,
       cssClass: 'settings-modal',
@@ -221,8 +246,10 @@ export class RecordsPage implements OnInit {
 
     modal.onDidDismiss().then((result) => {
       const action = result.data?.action;
-      if (action === 'setLicenseKey') {
-        // Implement license key modal if needed
+      if (action === 'setApiUrl') {
+        this.presentApiUrlDialog();
+      } else if (action === 'setLicenseKey') {
+        this.presentLicenseKeyDialog();
       } else if (action === 'logout') {
         this.authService.logout();
       }
@@ -231,12 +258,78 @@ export class RecordsPage implements OnInit {
     await modal.present();
   }
 
+  async presentApiUrlDialog() {
+    const storedUrl = localStorage.getItem('customApiUrl') || '';
+    const modal = await this.modalController.create({
+      component: ApiUrlModalComponent,
+      cssClass: 'api-url-modal',
+      componentProps: {
+        apiUrl: storedUrl || this.defaultApiUrl,
+      },
+    });
+
+    modal.onDidDismiss().then((result) => {
+      const data = result.data;
+      if (data?.apiUrl?.trim()) {
+        localStorage.setItem('customApiUrl', data.apiUrl.trim());
+        this.showToast('API URL updated successfully.', 'success');
+      } else {
+        // localStorage.removeItem('customApiUrl');
+        this.showToast('Using default API URL.', 'success');
+      }
+    });
+
+    await modal.present();
+  }
+
+  async presentLicenseKeyDialog(): Promise<void> {
+    const storedKey = localStorage.getItem('customLicenseKey') || '';
+    const modal = await this.modalController.create({
+      component: LicenseKeyModalComponent,
+      cssClass: 'api-url-modal',
+      componentProps: {
+        licenseKey: storedKey || this.defaultLicenseKey,
+      },
+    });
+
+    modal.onDidDismiss().then((result) => {
+      const data = result.data;
+      if (data?.licenseKey?.trim()) {
+        const sanitizedKey = this.sanitizeLicenseKey(data.licenseKey);
+
+        if (this.isValidLicenseKey(sanitizedKey)) {
+          localStorage.setItem('customLicenseKey', sanitizedKey);
+          this.showToast('License key updated successfully.', 'success');
+        } else {
+          this.showToast('Invalid license key format.', 'danger');
+        }
+      } else {
+        this.showToast('Using default license key.', 'success');
+      }
+    });
+
+    await modal.present();
+  }
+
+  sanitizeLicenseKey(input: string): string {
+    return input.trim().replace(/\s+/g, '');
+  }
+
+  isValidLicenseKey(key: string): boolean {
+    // Basic length check (Scanbot keys are long, usually >500 chars)
+    // You can also add more logic if Scanbot provides a regex or pattern
+    return typeof key === 'string' && key.length > 400;
+  }
+
   /**
    * Displays a toast notification.
    * @param message The message to display.
    * @param color The toast color (primary, success, warning, danger).
    */
-  private async showToast(message: string, color: string = 'primary'): Promise<void> {
+  private async showToast(
+    message: string,
+    color: string = 'primary'
+  ): Promise<void> {
     const toast = await this.toastCtrl.create({
       message,
       duration: 3000,

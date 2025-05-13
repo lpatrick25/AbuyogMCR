@@ -6,67 +6,90 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RecordsService {
-
   defaultApiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
-
-  login(userName: string, password: string): Observable<any> {
-    const headers = new HttpHeaders({
-      'Accept': 'application/json',
-    });
-
-    return this.http.post(`${this.defaultApiUrl}/login`, {
-      email: userName,
-      password: password,
-    }, { headers });
-  }
+  constructor(private http: HttpClient) {}
 
   getAllDocuments() {
-    return this.http.get<any[]>(`${this.defaultApiUrl}/documents`).toPromise();
+    const storedUrl = localStorage.getItem('customApiUrl');
+    return this.http
+      .get<any[]>(
+        storedUrl && storedUrl.trim() !== ''
+          ? storedUrl + '/documents'
+          : this.defaultApiUrl + '/documents'
+      )
+      .toPromise();
   }
 
   getDocument(id: string) {
-    return this.http.get(`${this.defaultApiUrl}/documents/${id}`).toPromise();
+    const storedUrl = localStorage.getItem('customApiUrl');
+    return this.http
+      .get(
+        storedUrl && storedUrl.trim() !== ''
+          ? storedUrl + '/documents'
+          : this.defaultApiUrl + '/documents'
+      )
+      .toPromise();
   }
 
   async getDocumentsByPage(page: number) {
     const params = { page: page.toString() };
+    const storedUrl = localStorage.getItem('customApiUrl');
 
     try {
-      const response = await this.http.get<any>(`${this.defaultApiUrl}/documents`, { params }).toPromise();
+      const response = await this.http
+        .get<any>(
+          storedUrl && storedUrl.trim() !== ''
+            ? storedUrl + '/documents'
+            : this.defaultApiUrl + '/documents',
+          { params }
+        )
+        .toPromise();
       return response; // <-- Return the WHOLE response, not just data
     } catch (error) {
       console.error('Failed to fetch documents:', error);
       return {
         data: [],
         last_page: 1,
-        current_page: page
+        current_page: page,
       };
     }
   }
 
-  async submitDocument(formSubmission: any, tiffFileUri: string, pdfFileUri: string): Promise<any> {
+  async submitDocument(
+    formSubmission: any,
+    tiffFileUris: string[]
+  ): Promise<any> {
     try {
       const formData = new FormData();
-
       formData.append('formData', JSON.stringify(formSubmission));
 
-      // Fetch TIFF file as a blob
-      const tiffBlob = await this.fetchFileBlob(tiffFileUri);
-      formData.append('tiffFile', tiffBlob, 'document.tiff');
+      // Ensure exactly two TIFF files (front and back)
+      if (tiffFileUris.length !== 2) {
+        throw new Error(
+          `Expected exactly two TIFF files (front and back), got ${tiffFileUris.length}`
+        );
+      }
 
-      // Fetch PDF file as a blob
-      const pdfBlob = await this.fetchFileBlob(pdfFileUri);
-      formData.append('pdfFile', pdfBlob, 'document.pdf');
-
-      // Send the form with both files
-      return await lastValueFrom(
-        this.http.post(`${this.defaultApiUrl}/documents/submit`, formData)
+      // Fetch blobs for both files concurrently
+      const [frontBlob, backBlob] = await Promise.all(
+        tiffFileUris.map((uri) => this.fetchFileBlob(uri))
       );
+
+      // Append front and back files to FormData
+      formData.append('front', frontBlob, 'front.tiff');
+      formData.append('back', backBlob, 'back.tiff');
+
+      const storedUrl = localStorage.getItem('customApiUrl');
+      const apiUrl =
+        storedUrl && storedUrl.trim() !== ''
+          ? storedUrl + '/documents/submit'
+          : this.defaultApiUrl + '/documents/submit';
+
+      return await lastValueFrom(this.http.post(apiUrl, formData));
     } catch (error: any) {
       console.error('Error during file upload:', error);
       throw error;
@@ -81,5 +104,4 @@ export class RecordsService {
     }
     return response.blob();
   }
-
 }

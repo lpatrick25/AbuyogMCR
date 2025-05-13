@@ -39,16 +39,16 @@ export class DocumentsModalComponent implements OnInit {
     }
   ];
 
-  constructor(private modalCtrl: ModalController, private router: Router) {}
+  constructor(private modalController: ModalController, private router: Router) {}
 
   ngOnInit() {}
 
   async selectDocument(type: string, title: string) {
     this.router.navigate(['/document-form', type, encodeURIComponent(title)]);
-    await this.modalCtrl.dismiss({ type, title });
+    await this.modalController.dismiss({ type, title });
   }
 
   async cancel() {
-    await this.modalCtrl.dismiss();
+    await this.modalController.dismiss();
   }
 }

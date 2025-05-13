@@ -17,14 +17,14 @@ export class LicenseKeyModalComponent {
   successMessage: string = '';
   valid: boolean = false;
 
-  constructor(private modalCtrl: ModalController) { }
+  constructor(private modalController: ModalController) { }
 
   ngOnInit() {
     this.validateKey(this.licenseKey);
   }
 
   dismiss() {
-    this.modalCtrl.dismiss();
+    this.modalController.dismiss();
   }
 
   sanitize(input: string): string {
@@ -49,6 +49,6 @@ export class LicenseKeyModalComponent {
   save() {
     this.validateKey(this.licenseKey);
     if (!this.valid) return;
-    this.modalCtrl.dismiss({ licenseKey: this.licenseKey });
+    this.modalController.dismiss({ licenseKey: this.licenseKey });
   }
 }

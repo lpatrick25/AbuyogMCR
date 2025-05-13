@@ -19,7 +19,7 @@ export class ForgotPasswordModalComponent {
 
   constructor(
     private http: HttpClient,
-    private modalCtrl: ModalController,
+    private modalController: ModalController,
     private toastCtrl: ToastController
   ) {}
 
@@ -53,7 +53,7 @@ export class ForgotPasswordModalComponent {
       this.loading = false;
       if (response?.status === 'success') {
         this.showToast('Password reset link sent.', 'success');
-        await this.modalCtrl.dismiss({ success: true }); // Auto-close on success
+        await this.modalController.dismiss({ success: true }); // Auto-close on success
       } else {
         this.showToast('Failed to send reset link.', 'danger');
       }
@@ -67,7 +67,7 @@ export class ForgotPasswordModalComponent {
   }
 
   async cancel() {
-    await this.modalCtrl.dismiss();
+    await this.modalController.dismiss();
   }
 
   async showToast(message: string, color: string = 'primary') {

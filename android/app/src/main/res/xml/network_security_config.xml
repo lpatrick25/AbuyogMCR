@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+  <!-- Allow cleartext traffic for 192.168.1.2 (development only) -->
+  <domain-config cleartextTrafficPermitted="true">
+    <domain>192.168.1.2</domain>
+    <trust-anchors>
+      <!-- Trust system certificates -->
+      <certificates src="system" />
+      <!-- Optionally trust user-added certificates for self-signed certs -->
+      <certificates src="user" />
+    </trust-anchors>
+  </domain-config>
+  <!-- Default config for other domains (enforce HTTPS) -->
+  <base-config cleartextTrafficPermitted="false">
+    <trust-anchors>
+      <certificates src="system" />
+    </trust-anchors>
+  </base-config>
+</network-security-config>

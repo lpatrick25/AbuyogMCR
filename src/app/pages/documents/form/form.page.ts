@@ -19,6 +19,7 @@ import {
 import { AuthService } from 'src/app/services/auth.service';
 import { SettingsModalComponent } from '../../modals/settings-modal/settings-modal.component';
 import { LicenseKeyModalComponent } from '../../modals/license-key-modal/license-key-modal.component';
+import { environment } from 'src/environments/environment';
 
 interface DocumentSubmission {
   documentType: string;
@@ -48,22 +49,8 @@ export class FormPage implements OnInit {
   loading: boolean = false;
   formSubmitted: boolean = false;
   hasSubmitted: boolean = false;
-
-  readonly licenseKey =
-    'Qnzs6xHmHwZyWhzt3Ualnz4vPDtH5U' +
-    'LfNytUl+Mz9I5r/GKW/xMTNdfIqSvG' +
-    'vfjdt4egkLYQviTV/k8gTboDc/LrbJ' +
-    '4FCklIzplBanuPKchif9XiK0jE+QFp' +
-    'klkRem5hw9y+xM+6Yk0lSZxrGzdMn+' +
-    'Jn/O+DLTF0lkEDql0eUhoooe9k9ibG' +
-    'LtCW2AFrxKC4Uuq/aO5sq9HX/RDZWm' +
-    'EirEdqfZgefaygbH21NBPK1pCEi+ae' +
-    'B6kLkGPXNjz3KakwjXgOaUnJrJIH73' +
-    'CHvPrsjAmCIpchRMKlBigh6uGcmglv' +
-    'MNbdNny257MHOcz7oN8Y2mVyH11pay' +
-    'w564sz1p5qhw==\nU2NhbmJvdFNESw' +
-    'pjb20uY2Fwc3RvbmUucHJvamVjdAox' +
-    'NzQ3NDM5OTk5CjgzODg2MDcKMTk=\n';
+  defaultApiUrl = environment.apiUrl;
+  defaultLicenseKey = environment.licenseKey;
 
   static readonly FILE_ENCRYPTION_ENABLED: boolean = false;
 
@@ -74,7 +61,7 @@ export class FormPage implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private modalCtrl: ModalController,
+    private modalController: ModalController,
     private http: HttpClient
   ) {
     this.form = this.fb.group({
@@ -160,7 +147,7 @@ export class FormPage implements OnInit {
         true;
 
       // Set colors
-      configuration.palette.sbColorPrimary = "#800000";
+      configuration.palette.sbColorPrimary = '#800000';
       configuration.palette.sbColorOnPrimary = '#ffffff';
 
       // Configure the hint texts for different scenarios
@@ -233,7 +220,7 @@ export class FormPage implements OnInit {
    */
   private async initScanbotSdk(): Promise<void> {
     const config: ScanbotSdkConfiguration = {
-      licenseKey: this.licenseKey,
+      licenseKey: this.defaultLicenseKey,
       loggingEnabled: true,
       storageImageFormat: 'JPG',
       storageImageQuality: 80,
@@ -259,7 +246,7 @@ export class FormPage implements OnInit {
    * Opens the settings modal for license key or logout actions.
    */
   async presentSettingsModal(): Promise<void> {
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalController.create({
       component: SettingsModalComponent,
       cssClass: 'settings-modal',
     });
@@ -281,11 +268,11 @@ export class FormPage implements OnInit {
    */
   async presentLicenseKeyDialog(): Promise<void> {
     const storedKey = localStorage.getItem('customLicenseKey') || '';
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalController.create({
       component: LicenseKeyModalComponent,
       cssClass: 'api-url-modal',
       componentProps: {
-        licenseKey: storedKey || this.licenseKey,
+        licenseKey: storedKey || this.defaultLicenseKey,
       },
     });
 

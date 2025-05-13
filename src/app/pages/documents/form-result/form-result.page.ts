@@ -5,9 +5,12 @@ import {
   OCRConfiguration,
   PageData,
   ScanbotBinarizationFilter,
-  ScanbotSDK
+  ScanbotSDK,
 } from 'capacitor-plugin-scanbot-sdk';
-import { DocumentScanningFlow, startDocumentScanner } from 'capacitor-plugin-scanbot-sdk/ui_v2';
+import {
+  DocumentScanningFlow,
+  startDocumentScanner,
+} from 'capacitor-plugin-scanbot-sdk/ui_v2';
 import { Capacitor } from '@capacitor/core';
 import { ActionSheetController, NavController } from '@ionic/angular';
 import { RecordsService } from 'src/app/services/records.service';
@@ -55,7 +58,9 @@ export class FormResultPage implements OnInit {
       }
 
       const navigation = this.router.getCurrentNavigation();
-      this.formSubmission = navigation?.extras?.state?.['submission'] as FormSubmission | undefined;
+      this.formSubmission = navigation?.extras?.state?.['submission'] as
+        | FormSubmission
+        | undefined;
       await this.loadDocument(documentID);
     });
   }
@@ -69,7 +74,9 @@ export class FormResultPage implements OnInit {
     this.pageImagePreviews = updatedDocument.pages.map((page) => ({
       page,
       pagePreviewWebViewPath: Capacitor.convertFileSrc(
-        (page.documentImagePreviewURI || page.originalImageURI) + '?' + Date.now()
+        (page.documentImagePreviewURI || page.originalImageURI) +
+          '?' +
+          Date.now()
       ),
     }));
   }
@@ -83,7 +90,11 @@ export class FormResultPage implements OnInit {
       await this.utils.showErrorAlert('Document UUID is missing');
       return;
     }
-    await this.navController.navigateForward(['/page-result', this.document.uuid, page.uuid]);
+    await this.navController.navigateForward([
+      '/page-result',
+      this.document.uuid,
+      page.uuid,
+    ]);
   }
 
   /**
@@ -93,10 +104,14 @@ export class FormResultPage implements OnInit {
   private async loadDocument(id: string): Promise<void> {
     this.loading = true;
     try {
-      const documentResult = await ScanbotSDK.Document.loadDocument({ documentID: id });
+      const documentResult = await ScanbotSDK.Document.loadDocument({
+        documentID: id,
+      });
       this.updateCurrentDocument(documentResult);
     } catch (error: any) {
-      await this.utils.showErrorAlert(`Failed to load document: ${error.message}`);
+      await this.utils.showErrorAlert(
+        `Failed to load document: ${error.message}`
+      );
     } finally {
       this.loading = false;
     }
@@ -118,7 +133,9 @@ export class FormResultPage implements OnInit {
       await startDocumentScanner(configuration);
       await this.loadDocument(this.document.uuid);
     } catch (error: any) {
-      await this.utils.showErrorAlert(`Failed to continue scanning: ${error.message}`);
+      await this.utils.showErrorAlert(
+        `Failed to continue scanning: ${error.message}`
+      );
     } finally {
       this.loading = false;
     }
@@ -160,46 +177,96 @@ export class FormResultPage implements OnInit {
       return;
     }
     this.loading = true;
+    const tiffFileUris: string[] = [];
+    const errors: string[] = [];
+
     try {
-      const tiffResult = await ScanbotSDK.Document.createTIFF({
+      const documentResult = await ScanbotSDK.Document.loadDocument({
         documentID: this.document.uuid,
-        options: {
-          binarizationFilter: new ScanbotBinarizationFilter({
-            outputMode: 'ANTIALIASED',
-          }),
-          dpi: 300,
-          compression: 'ADOBE_DEFLATE',
-        },
       });
 
-      const ocrConfiguration: OCRConfiguration = {
-        engineMode: 'SCANBOT_OCR',
-      };
+      // Ensure exactly two pages (front and back)
+      if (documentResult.pages.length < 2) {
+        await this.utils.showErrorAlert(
+          'Document must have at least two pages (front and back)'
+        );
+        return;
+      }
+      if (documentResult.pages.length > 2) {
+        await this.utils.showErrorAlert(
+          'Document has more than two pages. Please provide only front and back'
+        );
+        return;
+      }
 
-      const pdfResult = await ScanbotSDK.Document.createPDF({
-        documentID: this.document.uuid,
-        options: {
-          pageSize: 'A4',
-          pageDirection: 'PORTRAIT',
-          ocrConfiguration,
-        },
-      });
+      // Process front and back pages
+      const pagesToProcess = [
+        { page: documentResult.pages[0], label: 'front' },
+        { page: documentResult.pages[1], label: 'back' },
+      ];
 
-      if (!pdfResult.pdfFileUri) {
-        throw new Error('PDF file URI is missing');
+      for (const { page, label } of pagesToProcess) {
+        if (!page.documentImageURI) {
+          errors.push(
+            `${label.charAt(0).toUpperCase() + label.slice(1)} page (${
+              page.uuid
+            }): No document image URI`
+          );
+          continue;
+        }
+        try {
+          const tiffResult = await ScanbotSDK.writeTIFF({
+            imageFileUris: [page.documentImageURI],
+            options: {
+              binarizationFilter: undefined,
+              dpi: 300,
+              compression: 'ADOBE_DEFLATE',
+            },
+          });
+          if (tiffResult.status === 'OK' && tiffResult.tiffFileUri) {
+            tiffFileUris.push(tiffResult.tiffFileUri);
+          } else {
+            throw new Error('TIFF generation failed');
+          }
+        } catch (err: any) {
+          console.error(
+            `Error creating TIFF for ${label} page ${page.uuid}:`,
+            err
+          );
+          errors.push(
+            `${label.charAt(0).toUpperCase() + label.slice(1)} page (${
+              page.uuid
+            }): ${err.message}`
+          );
+        }
+      }
+
+      if (errors.length > 0) {
+        await this.utils.showErrorAlert(
+          `Failed to process pages:\n${errors.join('\n')}`
+        );
+        return;
+      }
+
+      if (tiffFileUris.length !== 2) {
+        await this.utils.showErrorAlert(
+          'Failed to generate exactly two TIFF files (front and back)'
+        );
+        return;
       }
 
       await this.recordService.submitDocument(
         this.formSubmission,
-        tiffResult.tiffFileUri,
-        pdfResult.pdfFileUri
+        tiffFileUris
       );
 
       await this.utils.showInfoAlert('Document uploaded successfully!');
       await this.navController.navigateRoot('/home');
     } catch (error: any) {
       console.error('Export error:', error);
-      await this.utils.showErrorAlert(`Failed to export document: ${error.message}`);
+      await this.utils.showErrorAlert(
+        `Failed to export document: ${error.message}`
+      );
     } finally {
       this.loading = false;
     }

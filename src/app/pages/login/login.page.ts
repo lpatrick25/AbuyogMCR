@@ -4,6 +4,7 @@ import { AlertController, ModalController, NavController, ToastController } from
 import { ConnectivityService } from 'src/app/services/connectivity.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ForgotPasswordModalComponent } from '../modals/forgot-password-modal/forgot-password-modal.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -16,6 +17,7 @@ export class LoginPage implements OnInit {
   password = '';
   loading = false;
   networkStatus: boolean = false;
+    private defaultApiUrl = environment.apiUrl;
 
   constructor(
     private http: HttpClient,
@@ -24,7 +26,7 @@ export class LoginPage implements OnInit {
     private connectivityService: ConnectivityService,
     private authService: AuthService,
     private alertController: AlertController,
-    private modalCtrl: ModalController
+    private modalController: ModalController
   ) {}
 
   ngOnInit() {
@@ -62,9 +64,11 @@ export class LoginPage implements OnInit {
       Accept: 'application/json',
     });
 
+    const storedUrl = localStorage.getItem('customApiUrl');
+
     this.http
       .post<any>(
-        'https://bfp.unitech.host/api/login',
+        storedUrl && storedUrl.trim() !== '' ? storedUrl + '/login' : this.defaultApiUrl + '/login',
         {
           email: this.email,
           password: this.password,
@@ -75,6 +79,7 @@ export class LoginPage implements OnInit {
         next: async (res) => {
           this.loading = false;
           if (res?.status === 'success' && res?.token && res?.expires_at) {
+            console.log(res.user.role);
             if (res.user.role === 'Admin' || res.user.role === 'Marshall') {
               try {
                 await this.authService.setToken(res.token, res.expires_at);
@@ -100,7 +105,7 @@ export class LoginPage implements OnInit {
   }
 
   async forgotPassword() {
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalController.create({
       component: ForgotPasswordModalComponent,
       cssClass: 'forgot-password-modal',
       componentProps: {
