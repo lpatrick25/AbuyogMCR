@@ -21,7 +21,7 @@ interface Document {
   front_url: string;
   back_url: string;
   processedTiffUrl?: string;
-  processedFontUrl?: string;
+  processedFrontUrl?: string;
   processedBackUrl?: string;
 }
 
@@ -87,7 +87,7 @@ export class RecordsPage implements OnInit {
           doc.processedTiffUrl = await this.convertTiffToBase64(doc.image_url);
         }
         if (this.isTiff(doc.front_url)) {
-          doc.processedFontUrl = await this.convertTiffToBase64(doc.front_url);
+          doc.processedFrontUrl = await this.convertTiffToBase64(doc.front_url);
         }
         if (this.isTiff(doc.back_url)) {
           doc.processedBackUrl = await this.convertTiffToBase64(doc.back_url);
@@ -106,17 +106,42 @@ export class RecordsPage implements OnInit {
    * @param url The input URL.
    * @returns The sanitized URL.
    */
+  // private sanitizeUrl(url: string): string {
+  //   if (!url) return url;
+
+  //   // If URL already starts with http/https, return as-is
+  //   if (url.startsWith('http://') || url.startsWith('https://')) {
+  //     return url.replace(
+  //       /https:\/\/localhost\/localhost\//g,
+  //       'https://localhost/'
+  //     );
+  //   }
+
+  //   // If URL starts with 'localhost/', add protocol
+  //   if (url.startsWith('localhost/')) {
+  //     return `https://localhost/${url.replace(/^localhost\//, '')}`;
+  //   }
+
+  //   // If it starts with '/storage', assume local path and add localhost
+  //   if (url.startsWith('/storage')) {
+  //     return `https://localhost${url}`;
+  //   }
+
+  //   return url;
+  // }
   private sanitizeUrl(url: string): string {
     if (!url) return url;
-    // Replace multiple "localhost" segments with a single one
-    const baseUrl = 'https://localhost/';
-    const correctedUrl = url.replace(
-      /https:\/\/localhost\/localhost\//g,
-      baseUrl
-    );
-    console.log('Based URL' + baseUrl);
-    console.log('Corrected URL' + correctedUrl);
-    return correctedUrl;
+
+    // Replace 'localhost' with local IP
+    const localServer = 'https://192.168.100.123';
+    if (url.startsWith('localhost/')) {
+      return `${localServer}/${url.replace('localhost/', '')}`;
+    }
+    if (url.startsWith('/storage')) {
+      return `${localServer}${url}`;
+    }
+
+    return url;
   }
 
   /**
@@ -238,10 +263,17 @@ export class RecordsPage implements OnInit {
    * @param doc The document to view.
    */
   async openDocumentModal(doc: Document): Promise<void> {
-    const isTiffFile = this.isTiff(doc.image_url);
+    const isTiffImage = this.isTiff(doc.image_url);
+    const isTiffFront = this.isTiff(doc.front_url);
+    const isTiffBack = this.isTiff(doc.back_url);
     const modal = await this.modalController.create({
       component: ViewRecordsModalComponent,
-      componentProps: { document: doc, isTiffFile },
+      componentProps: {
+        document: doc,
+        isTiffImage,
+        isTiffFront,
+        isTiffBack,
+      },
     });
     await modal.present();
   }

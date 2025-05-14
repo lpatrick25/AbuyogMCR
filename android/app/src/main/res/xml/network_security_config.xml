@@ -2,7 +2,7 @@
 <network-security-config>
   <!-- Allow cleartext traffic for 192.168.1.2 (development only) -->
   <domain-config cleartextTrafficPermitted="true">
-    <domain includeSubdomains="TODO">192.168.100.185</domain>
+    <domain includeSubdomains="TODO">192.168.100.123</domain>
     <trust-anchors>
       <!-- Trust system certificates -->
       <certificates src="system" />

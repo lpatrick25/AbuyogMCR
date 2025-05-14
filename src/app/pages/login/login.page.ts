@@ -41,11 +41,11 @@ export class LoginPage implements OnInit {
       this.networkStatus = isConnected;
     });
 
-    this.authService.isLoggedIn().then((isLoggedIn) => {
-      if (isLoggedIn) {
-        this.navCtrl.navigateRoot('/home');
-      }
-    });
+    // this.authService.isLoggedIn().then((isLoggedIn) => {
+    //   if (isLoggedIn) {
+    //     this.navCtrl.navigateRoot('/home');
+    //   }
+    // });
   }
 
   async checkConnection() {
@@ -89,6 +89,7 @@ export class LoginPage implements OnInit {
             console.log(res.user);
             this.navCtrl.navigateRoot('/home');
             this.showToast('Login successful.', 'success');
+            localStorage.setItem('user', JSON.stringify(res.user));
           } else {
             this.showToast('Invalid response from server.', 'danger');
           }

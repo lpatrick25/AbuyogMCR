@@ -17,22 +17,57 @@
     </ion-card-header>
     <ion-card-content>
       <p><strong>First Name:</strong> {{ document.first_name }}</p>
-      <p><strong>Middle Name:</strong> {{ document.middle_name || 'N/A' }}</p>
+      <p><strong>Middle Name:</strong> {{ document.middle_name || "N/A" }}</p>
       <p><strong>Last Name:</strong> {{ document.last_name }}</p>
-      <p><strong>Suffix:</strong> {{ document.suffix || 'N/A' }}</p>
-      <p><strong>Date of Birth:</strong> {{ document.dob }}</p>
-      <p><strong>Place of Birth:</strong> {{ document.place_of_birth }}</p>
-      <p><strong>Father's Name:</strong> {{ document.father_name }}</p>
-      <p><strong>Mother's Name:</strong> {{ document.mother_name }}</p>
-      <p><strong>Registry Number:</strong> {{ document.registry_number }}</p>
+      <p><strong>Suffix:</strong> {{ document.suffix || "N/A" }}</p>
+      <p><strong>Date of Birth:</strong> {{ document.dob || "N/A" }}</p>
+      <p>
+        <strong>Place of Birth:</strong> {{ document.place_of_birth || "N/A" }}
+      </p>
+      <p><strong>Father's Name:</strong> {{ document.father_name || "N/A" }}</p>
+      <p><strong>Mother's Name:</strong> {{ document.mother_name || "N/A" }}</p>
+      <p>
+        <strong>Registry Number:</strong>
+        {{ document.registry_number || "N/A" }}
+      </p>
+      <!-- <p><strong>TIFF URL:</strong> {{ document.image_url }}</p>
+      <p><strong>Front URL:</strong> {{ document.front_url }}</p>
+      <p><strong>Back URL:</strong> {{ document.back_url }}</p> -->
 
-      <!-- Display the TIFF image if it's a TIFF -->
-      <ion-img *ngIf="isTiffFile" [src]="document.processedTiffUrl || document.image_url" alt="TIFF Document"></ion-img>
+      <!-- TIFF Document -->
+      <!-- <div *ngIf="document.image_url">
+        <ion-img
+          *ngIf="isTiffImage && document.processedTiffUrl; else tiffImage"
+          [src]="document.processedTiffUrl"
+          alt="TIFF Document"
+        ></ion-img>
+        <ng-template #tiffImage>
+          <ion-img [src]="document.image_url" alt="TIFF Document"></ion-img>
+        </ng-template>
+      </div> -->
 
-      <!-- Display the PDF as a canvas -->
-      <div *ngIf="!isTiffFile">
-        <canvas id="pdf-canvas" *ngIf="pdfLoaded"></canvas>
-        <ion-spinner *ngIf="!pdfLoaded" name="crescent"></ion-spinner>
+      <!-- Front Document -->
+      <div *ngIf="document.front_url">
+        <ion-img
+          *ngIf="isTiffFront && document.processedFrontUrl; else frontImage"
+          [src]="document.processedFrontUrl"
+          alt="Front Document"
+        ></ion-img>
+        <ng-template #frontImage>
+          <ion-img [src]="document.front_url" alt="Front Document"></ion-img>
+        </ng-template>
+      </div>
+
+      <!-- Back Document -->
+      <div *ngIf="document.back_url">
+        <ion-img
+          *ngIf="isTiffBack && document.processedBackUrl; else backImage"
+          [src]="document.processedBackUrl"
+          alt="Back Document"
+        ></ion-img>
+        <ng-template #backImage>
+          <ion-img [src]="document.back_url" alt="Back Document"></ion-img>
+        </ng-template>
       </div>
     </ion-card-content>
   </ion-card>

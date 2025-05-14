@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://bfp.unitech.host/api',
+  apiUrl: 'https://192.168.100.123/api',
   licenseKey:
     'Qnzs6xHmHwZyWhzt3Ualnz4vPDtH5U' +
     'LfNytUl+Mz9I5r/GKW/xMTNdfIqSvG' +
@@ -19,7 +19,7 @@ export const environment = {
     'MNbdNny257MHOcz7oN8Y2mVyH11pay' +
     'w564sz1p5qhw==\nU2NhbmJvdFNESw' +
     'pjb20uY2Fwc3RvbmUucHJvamVjdAox' +
-    'NzQ3NDM5OTk5CjgzODg2MDcKMTk=\n'
+    'NzQ3NDM5OTk5CjgzODg2MDcKMTk=\n',
 };
 
 /*

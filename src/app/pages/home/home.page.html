@@ -6,7 +6,11 @@
         Abuyog MCR
       </ion-title>
       <ion-buttons slot="end">
-        <ion-button color="light" (click)="presentSettingsModal()" title="Settings">
+        <ion-button
+          color="light"
+          (click)="presentSettingsModal()"
+          title="Settings"
+        >
           <ion-icon name="settings-outline" slot="start"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -15,22 +19,32 @@
 
   <ion-content class="ion-padding">
     <div class="card-container">
-      <ion-card class="feature-card" button (click)="navigateTo('pending')" role="button"
+      <!-- <ion-card class="feature-card" button (click)="navigateTo('pending')" role="button"
         aria-label="Navigate to Pending Request">
         <ion-card-content class="card-content">
           <ion-icon name="mail-outline" class="card-icon"></ion-icon>
           <ion-label class="card-title">Pending Request</ion-label>
         </ion-card-content>
-      </ion-card>
-      <ion-card class="feature-card" button (click)="presentDocuments()" role="button"
-        aria-label="Navigate to Document Scanner">
+      </ion-card> -->
+      <ion-card
+        class="feature-card"
+        button
+        (click)="presentDocuments()"
+        role="button"
+        aria-label="Navigate to Document Scanner"
+      >
         <ion-card-content class="card-content">
           <ion-icon name="scan-outline" class="card-icon"></ion-icon>
           <ion-label class="card-title">Document Scanner</ion-label>
         </ion-card-content>
       </ion-card>
-      <ion-card class="feature-card" button (click)="navigateTo('records')" role="button"
-        aria-label="Navigate to Pending Request">
+      <ion-card
+        class="feature-card"
+        button
+        (click)="navigateTo('records')"
+        role="button"
+        aria-label="Navigate to Pending Request"
+      >
         <ion-card-content class="card-content">
           <ion-icon name="mail-outline" class="card-icon"></ion-icon>
           <ion-label class="card-title">Municipal Records</ion-label>

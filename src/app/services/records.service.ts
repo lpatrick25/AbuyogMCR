@@ -83,6 +83,12 @@ export class RecordsService {
       formData.append('front', frontBlob, 'front.tiff');
       formData.append('back', backBlob, 'back.tiff');
 
+      // Safely retrieve user from localStorage
+      const userString = localStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
+      const user_Id = user?.id || '';
+      formData.append('user_Id', user_Id);
+
       const storedUrl = localStorage.getItem('customApiUrl');
       const apiUrl =
         storedUrl && storedUrl.trim() !== ''

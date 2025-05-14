@@ -11,17 +11,26 @@ import { IonicModule, ModalController } from '@ionic/angular';
   imports: [IonicModule, CommonModule, FormsModule],
 })
 export class ViewRecordsModalComponent implements OnInit {
-  @Input() document: any; // Document details passed as input
-  @Input() isTiffFile: boolean = false; // Default value to false if not provided
-  public pdfUrl: string = '';
-  public pdfLoaded: boolean = true;
+  @Input() document: any;
+  @Input() isTiffImage: boolean = false;
+  @Input() isTiffFront: boolean = false;
+  @Input() isTiffBack: boolean = false;
 
-  constructor(private modalController: ModalController) { }
+  constructor(private modalController: ModalController) {}
 
   ngOnInit() {
-    if (this.isTiffFile) {
-      // If the document is a TIFF, show the TIFF image
-      // this.loadTiff(this.document.image_url);
+    // Validate processed URLs
+    if (this.isTiffImage && !this.document.processedTiffUrl) {
+      console.warn('Processed TIFF URL missing for image_url');
+      this.document.processedTiffUrl = this.getFallbackImage();
+    }
+    if (this.isTiffFront && !this.document.processedFrontUrl) {
+      console.warn('Processed TIFF URL missing for front_url');
+      this.document.processedFrontUrl = this.getFallbackImage();
+    }
+    if (this.isTiffBack && !this.document.processedBackUrl) {
+      console.warn('Processed TIFF URL missing for back_url');
+      this.document.processedBackUrl = this.getFallbackImage();
     }
   }
 
@@ -30,7 +39,13 @@ export class ViewRecordsModalComponent implements OnInit {
   }
 
   isTiff(url: string): boolean {
-    return url?.toLowerCase().endsWith('.tif') || url?.toLowerCase().endsWith('.tiff');
+    return (
+      url?.toLowerCase().endsWith('.tif') ||
+      url?.toLowerCase().endsWith('.tiff')
+    );
   }
 
+  getFallbackImage(): string {
+    return 'https://picsum.photos/1200/800?r=' + Math.random();
+  }
 }
