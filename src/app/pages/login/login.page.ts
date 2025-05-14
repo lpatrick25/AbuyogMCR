@@ -1,6 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AlertController, ModalController, NavController, ToastController } from '@ionic/angular';
+import {
+  AlertController,
+  ModalController,
+  NavController,
+  ToastController,
+} from '@ionic/angular';
 import { ConnectivityService } from 'src/app/services/connectivity.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ForgotPasswordModalComponent } from '../modals/forgot-password-modal/forgot-password-modal.component';
@@ -13,11 +18,11 @@ import { environment } from 'src/environments/environment';
   standalone: false,
 })
 export class LoginPage implements OnInit {
-  email = '';
+  userName = '';
   password = '';
   loading = false;
   networkStatus: boolean = false;
-    private defaultApiUrl = environment.apiUrl;
+  private defaultApiUrl = environment.apiUrl;
 
   constructor(
     private http: HttpClient,
@@ -53,8 +58,8 @@ export class LoginPage implements OnInit {
       return;
     }
 
-    if (!this.email || !this.password) {
-      this.showToast('Please enter email and password.', 'warning');
+    if (!this.userName || !this.password) {
+      this.showToast('Please enter userName and password.', 'warning');
       return;
     }
 
@@ -68,9 +73,11 @@ export class LoginPage implements OnInit {
 
     this.http
       .post<any>(
-        storedUrl && storedUrl.trim() !== '' ? storedUrl + '/login' : this.defaultApiUrl + '/login',
+        storedUrl && storedUrl.trim() !== ''
+          ? storedUrl + '/login/record-keeper'
+          : this.defaultApiUrl + '/login/record-keeper',
         {
-          email: this.email,
+          userName: this.userName,
           password: this.password,
         },
         { headers }
@@ -78,20 +85,10 @@ export class LoginPage implements OnInit {
       .subscribe({
         next: async (res) => {
           this.loading = false;
-          if (res?.status === 'success' && res?.token && res?.expires_at) {
-            console.log(res.user.role);
-            if (res.user.role === 'Admin' || res.user.role === 'Marshall') {
-              try {
-                await this.authService.setToken(res.token, res.expires_at);
-                this.navCtrl.navigateRoot('/home');
-                this.showToast('Login successful.', 'success');
-              } catch (error) {
-                console.error('Failed to set token:', error);
-                this.showToast('Invalid token expiration data.', 'danger');
-              }
-            } else {
-              this.showToast('Not authorized.', 'danger');
-            }
+          if (res?.success) {
+            console.log(res.user);
+            this.navCtrl.navigateRoot('/home');
+            this.showToast('Login successful.', 'success');
           } else {
             this.showToast('Invalid response from server.', 'danger');
           }
@@ -99,7 +96,10 @@ export class LoginPage implements OnInit {
         error: async (err) => {
           this.loading = false;
           console.error('Login Error:', err);
-          this.showToast('Login failed. Please check your credentials.', 'danger');
+          this.showToast(
+            'Login failed. Please check your credentials.',
+            'danger'
+          );
         },
       });
   }
@@ -109,8 +109,8 @@ export class LoginPage implements OnInit {
       component: ForgotPasswordModalComponent,
       cssClass: 'forgot-password-modal',
       componentProps: {
-        networkStatus: this.networkStatus
-      }
+        networkStatus: this.networkStatus,
+      },
     });
     await modal.present();
   }

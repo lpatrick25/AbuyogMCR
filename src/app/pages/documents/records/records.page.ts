@@ -18,9 +18,11 @@ interface Document {
   suffix?: string;
   document_type: string;
   image_url: string;
-  pdf_url?: string;
+  front_url: string;
+  back_url: string;
   processedTiffUrl?: string;
-  pdfUrl?: string;
+  processedFontUrl?: string;
+  processedBackUrl?: string;
 }
 
 @Component({
@@ -62,16 +64,19 @@ export class RecordsPage implements OnInit {
    */
   private async loadDocuments(): Promise<void> {
     try {
-      if (await this.authService.isTokenExpired()) {
-        await this.showToast('Session expired. Please log in again.', 'danger');
-        await this.authService.logout();
-        return;
-      }
-
       const response = await this.recordsService.getDocumentsByPage(
         this.currentPage
       );
-      const newDocuments = (response.data?.data ?? []) as Document[];
+      let newDocuments = (response.data?.data ?? []) as Document[];
+
+      // Sanitize URLs to fix duplicate "localhost" issue
+      newDocuments = newDocuments.map((doc) => ({
+        ...doc,
+        image_url: this.sanitizeUrl(doc.image_url),
+        front_url: this.sanitizeUrl(doc.front_url),
+        back_url: this.sanitizeUrl(doc.back_url),
+      }));
+
       this.documents = [...this.documents, ...newDocuments];
       this.filteredDocuments = [...this.documents];
       this.lastPage = response.data?.last_page ?? 1;
@@ -81,8 +86,11 @@ export class RecordsPage implements OnInit {
         if (this.isTiff(doc.image_url)) {
           doc.processedTiffUrl = await this.convertTiffToBase64(doc.image_url);
         }
-        if (doc.pdf_url) {
-          doc.pdfUrl = doc.pdf_url;
+        if (this.isTiff(doc.front_url)) {
+          doc.processedFontUrl = await this.convertTiffToBase64(doc.front_url);
+        }
+        if (this.isTiff(doc.back_url)) {
+          doc.processedBackUrl = await this.convertTiffToBase64(doc.back_url);
         }
       }
     } catch (error: any) {
@@ -91,6 +99,24 @@ export class RecordsPage implements OnInit {
       this.filteredDocuments = [];
       await this.showToast('Failed to load documents', 'danger');
     }
+  }
+
+  /**
+   * Sanitizes a URL to remove duplicate "localhost" segments.
+   * @param url The input URL.
+   * @returns The sanitized URL.
+   */
+  private sanitizeUrl(url: string): string {
+    if (!url) return url;
+    // Replace multiple "localhost" segments with a single one
+    const baseUrl = 'https://localhost/';
+    const correctedUrl = url.replace(
+      /https:\/\/localhost\/localhost\//g,
+      baseUrl
+    );
+    console.log('Based URL' + baseUrl);
+    console.log('Corrected URL' + correctedUrl);
+    return correctedUrl;
   }
 
   /**
@@ -109,12 +135,23 @@ export class RecordsPage implements OnInit {
    * @param tiffUrl The TIFF file URL.
    */
   async convertTiffToBase64(tiffUrl: string): Promise<string> {
+    if (!tiffUrl) {
+      console.warn('No TIFF URL provided');
+      return this.getFallbackImage();
+    }
+
     if (this.tiffCache.has(tiffUrl)) {
       return this.tiffCache.get(tiffUrl)!;
     }
 
     try {
       const response = await fetch(tiffUrl);
+      if (!response.ok) {
+        throw new Error(
+          `HTTP error ${response.status}: ${response.statusText}`
+        );
+      }
+
       const arrayBuffer = await response.arrayBuffer();
       const ifds = UTIF.decode(arrayBuffer);
 
@@ -122,17 +159,20 @@ export class RecordsPage implements OnInit {
         throw new Error('No images found in TIFF');
       }
 
-      UTIF.decodeImage(arrayBuffer, ifds[0]);
       const firstImage = ifds[0];
+      UTIF.decodeImage(arrayBuffer, firstImage);
+
       if (
         !firstImage ||
-        !firstImage.width ||
-        !firstImage.height ||
+        !Number.isFinite(firstImage.width) ||
+        !Number.isFinite(firstImage.height) ||
         firstImage.width <= 0 ||
         firstImage.height <= 0
       ) {
         throw new Error(
-          `Invalid image dimensions: width=${firstImage?.width}, height=${firstImage?.height}`
+          `Invalid image dimensions: width=${
+            firstImage?.width ?? 'undefined'
+          }, height=${firstImage?.height ?? 'undefined'}`
         );
       }
 
@@ -150,15 +190,25 @@ export class RecordsPage implements OnInit {
       imgData.data.set(rgba);
       ctx.putImageData(imgData, 0, 0);
 
-      const base64 = canvas.toDataURL();
+      const base64 = canvas.toDataURL('image/png');
       this.tiffCache.set(tiffUrl, base64);
       return base64;
     } catch (error: any) {
-      console.error('Failed to convert TIFF:', error);
-      const fallback = 'https://picsum.photos/1200/800?r=' + Math.random();
-      this.tiffCache.set(tiffUrl, fallback);
+      console.error(`Failed to convert TIFF at ${tiffUrl}:`, error.message);
+      const fallback = this.getFallbackImage();
+      // Only cache fallback if the error is not transient (e.g., network issue)
+      if (!error.message.includes('HTTP error')) {
+        this.tiffCache.set(tiffUrl, fallback);
+      }
       return fallback;
     }
+  }
+
+  /**
+   * Returns a fallback image URL.
+   */
+  private getFallbackImage(): string {
+    return 'https://picsum.photos/1200/800?r=' + Math.random();
   }
 
   /**
