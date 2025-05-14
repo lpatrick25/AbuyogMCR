@@ -32,10 +32,10 @@ export class SmsService {
   }
 
   getPendingSmsRequests(): Observable<any[]> {
-    const token = this.authService.getToken();
+    // const token = this.authService.getToken();
     const headers = new HttpHeaders({
       Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
+      // Authorization: `Bearer ${token}`,
     });
 
     return this.http
@@ -229,10 +229,10 @@ export class SmsService {
   }
 
   async updateSmsStatus(id: number, status: 'sent' | 'failed') {
-    const token = this.authService.getToken();
+    // const token = this.authService.getToken();
     const headers = new HttpHeaders({
       Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
+      // Authorization: `Bearer ${token}`,
     });
 
     try {

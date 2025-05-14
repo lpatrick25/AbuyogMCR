@@ -12,7 +12,7 @@ import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions
 import { SMS } from '@awesome-cordova-plugins/sms/ngx';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { AuthInterceptor } from './interceptors/auth.interceptor';
+// import { AuthInterceptor } from './interceptors/auth.interceptor';
 // import { SettingsModalComponent } from './settings-modal/settings-modal.component';
 import { Diagnostic } from '@awesome-cordova-plugins/diagnostic/ngx';
 
@@ -24,11 +24,11 @@ import { Diagnostic } from '@awesome-cordova-plugins/diagnostic/ngx';
     AndroidPermissions,
     SMS,
     Diagnostic,
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
-      multi: true
-    }
+    // {
+    //   provide: HTTP_INTERCEPTORS,
+    //   useClass: AuthInterceptor,
+    //   multi: true
+    // }
   ],
   bootstrap: [AppComponent],
 })
