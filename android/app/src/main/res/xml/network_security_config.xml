@@ -13,6 +13,7 @@
   <!-- Default config for other domains (enforce HTTPS) -->
   <base-config cleartextTrafficPermitted="false">
     <trust-anchors>
+      <certificates src="user" />
       <certificates src="system" />
     </trust-anchors>
   </base-config>

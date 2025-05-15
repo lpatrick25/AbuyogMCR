@@ -12,25 +12,15 @@ import { IonicModule, ModalController } from '@ionic/angular';
 })
 export class ViewRecordsModalComponent implements OnInit {
   @Input() document: any;
-  @Input() isTiffImage: boolean = false;
-  @Input() isTiffFront: boolean = false;
-  @Input() isTiffBack: boolean = false;
+  @Input() isPdfImage: boolean = false;
 
   constructor(private modalController: ModalController) {}
 
   ngOnInit() {
     // Validate processed URLs
-    if (this.isTiffImage && !this.document.processedTiffUrl) {
+    if (this.isPdfImage && !this.document.processedPdfUrl) {
       console.warn('Processed TIFF URL missing for image_url');
-      this.document.processedTiffUrl = this.getFallbackImage();
-    }
-    if (this.isTiffFront && !this.document.processedFrontUrl) {
-      console.warn('Processed TIFF URL missing for front_url');
-      this.document.processedFrontUrl = this.getFallbackImage();
-    }
-    if (this.isTiffBack && !this.document.processedBackUrl) {
-      console.warn('Processed TIFF URL missing for back_url');
-      this.document.processedBackUrl = this.getFallbackImage();
+      this.document.processedPdfUrl = this.getFallbackImage();
     }
   }
 

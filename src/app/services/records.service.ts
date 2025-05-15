@@ -59,55 +59,49 @@ export class RecordsService {
     }
   }
 
-  async submitDocument(
-    formSubmission: any,
-    tiffFileUris: string[]
-  ): Promise<any> {
+  async submitDocument(formSubmission: any, pdfFileUri: string): Promise<any> {
     try {
       const formData = new FormData();
-      formData.append('formData', JSON.stringify(formSubmission));
 
-      // Ensure exactly two TIFF files (front and back)
-      if (tiffFileUris.length !== 2) {
-        throw new Error(
-          `Expected exactly two TIFF files (front and back), got ${tiffFileUris.length}`
-        );
-      }
+      // Serialize form submission
+      const submissionData = JSON.stringify(formSubmission);
+      formData.append('formData', submissionData);
 
-      // Fetch blobs for both files concurrently
-      const [frontBlob, backBlob] = await Promise.all(
-        tiffFileUris.map((uri) => this.fetchFileBlob(uri))
-      );
+      // Get the PDF blob
+      const pdfBlob = await this.fetchFileBlob(pdfFileUri);
 
-      // Append front and back files to FormData
-      formData.append('front', frontBlob, 'front.tiff');
-      formData.append('back', backBlob, 'back.tiff');
+      // Extract filename safely from formSubmission
+      const documentType = formSubmission?.documentType || 'uploaded_document';
 
-      // Safely retrieve user from localStorage
+      formData.append('pdf_file', pdfBlob, `${documentType}.pdf`);
+
+      // Retrieve user info safely
       const userString = localStorage.getItem('user');
       const user = userString ? JSON.parse(userString) : null;
-      const user_Id = user?.id || '';
+      const user_Id = user?.id ?? '';
       formData.append('user_Id', user_Id);
 
+      // Build API URL
       const storedUrl = localStorage.getItem('customApiUrl');
-      const apiUrl =
-        storedUrl && storedUrl.trim() !== ''
-          ? storedUrl + '/documents/submit'
-          : this.defaultApiUrl + '/documents/submit';
+      const baseUrl = storedUrl?.trim() || this.defaultApiUrl;
+      const apiUrl = `${baseUrl}/documents/submit`;
 
+      // Perform HTTP POST
       return await lastValueFrom(this.http.post(apiUrl, formData));
     } catch (error: any) {
-      console.error('Error during file upload:', error);
-      throw error;
+      console.error('Error during document submission:', error);
+      throw new Error(`Submission failed: ${error.message}`);
     }
   }
 
   private async fetchFileBlob(fileUri: string): Promise<Blob> {
     const safeUri = Capacitor.convertFileSrc(fileUri);
     const response = await fetch(safeUri);
+
     if (!response.ok) {
       throw new Error(`Failed to fetch file: ${response.statusText}`);
     }
+
     return response.blob();
   }
 }

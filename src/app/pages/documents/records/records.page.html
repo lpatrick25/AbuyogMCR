@@ -40,11 +40,19 @@
     class="center-spinner"
   ></ion-spinner>
 
+  <!-- Error Message -->
+  <!-- <ion-card *ngIf="errorMessage && !isLoading" class="error-card">
+    <ion-card-content>
+      <ion-icon name="alert-circle-outline" class="card-icon"></ion-icon>
+      <ion-label>{{ errorMessage }}</ion-label>
+    </ion-card-content>
+  </ion-card> -->
+
   <!-- No Documents Found -->
   <ion-card
-    class="feature-card"
     *ngIf="filteredDocuments.length === 0 && !isLoading"
-    role="button"
+    class="feature-card"
+    role="alert"
   >
     <ion-card-content class="card-content">
       <ion-icon name="document-outline" class="card-icon"></ion-icon>
@@ -63,18 +71,17 @@
         size-md="4"
         *ngFor="let doc of filteredDocuments"
       >
-        <ion-card (click)="openDocumentModal(doc)" class="doc-card">
+        <ion-card
+          (click)="openDocumentModal(doc)"
+          class="doc-card"
+          role="button"
+          [attr.aria-label]="'View ' + formatText(getFullName(doc)) + ' document'"
+        >
           <ion-img
-            *ngIf="!isTiff(doc.image_url)"
-            [src]="doc.image_url"
-            alt="{{ formatText(getFullName(doc)) }} Image"
+            [src]="doc.thumbnailUrl"
+            [alt]="formatText(getFullName(doc)) + ' thumbnail'"
             class="doc-image"
-          ></ion-img>
-          <ion-img
-            *ngIf="isTiff(doc.image_url)"
-            [src]="doc.processedTiffUrl"
-            alt="{{ formatText(getFullName(doc)) }} TIFF Image"
-            class="doc-image"
+            loading="lazy"
           ></ion-img>
           <ion-card-header>
             <ion-card-title class="doc-name"
@@ -83,15 +90,6 @@
             <ion-card-subtitle class="doc-type"
               >{{ formatText(doc.document_type) }}</ion-card-subtitle
             >
-            <!-- <ion-card-subtitle class="doc-type"
-              >{{ formatText(doc.image_url) }}</ion-card-subtitle
-            >
-            <ion-card-subtitle class="doc-type"
-              >{{ formatText(doc.front_url) }}</ion-card-subtitle
-            >
-            <ion-card-subtitle class="doc-type"
-              >{{ formatText(doc.back_url) }}</ion-card-subtitle
-            > -->
           </ion-card-header>
         </ion-card>
       </ion-col>

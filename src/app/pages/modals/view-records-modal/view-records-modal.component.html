@@ -30,43 +30,16 @@
         <strong>Registry Number:</strong>
         {{ document.registry_number || "N/A" }}
       </p>
-      <!-- <p><strong>TIFF URL:</strong> {{ document.image_url }}</p>
-      <p><strong>Front URL:</strong> {{ document.front_url }}</p>
-      <p><strong>Back URL:</strong> {{ document.back_url }}</p> -->
-
-      <!-- TIFF Document -->
-      <!-- <div *ngIf="document.image_url">
-        <ion-img
-          *ngIf="isTiffImage && document.processedTiffUrl; else tiffImage"
-          [src]="document.processedTiffUrl"
-          alt="TIFF Document"
-        ></ion-img>
-        <ng-template #tiffImage>
-          <ion-img [src]="document.image_url" alt="TIFF Document"></ion-img>
-        </ng-template>
-      </div> -->
 
       <!-- Front Document -->
       <div *ngIf="document.front_url">
         <ion-img
-          *ngIf="isTiffFront && document.processedFrontUrl; else frontImage"
+          *ngIf="isPdfImage && document.processedFrontUrl; else frontImage"
           [src]="document.processedFrontUrl"
           alt="Front Document"
         ></ion-img>
         <ng-template #frontImage>
           <ion-img [src]="document.front_url" alt="Front Document"></ion-img>
-        </ng-template>
-      </div>
-
-      <!-- Back Document -->
-      <div *ngIf="document.back_url">
-        <ion-img
-          *ngIf="isTiffBack && document.processedBackUrl; else backImage"
-          [src]="document.processedBackUrl"
-          alt="Back Document"
-        ></ion-img>
-        <ng-template #backImage>
-          <ion-img [src]="document.back_url" alt="Back Document"></ion-img>
         </ng-template>
       </div>
     </ion-card-content>

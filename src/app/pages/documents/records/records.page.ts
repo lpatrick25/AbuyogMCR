@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
-// @ts-ignore
-import UTIF from 'utif';
 import { RecordsService } from 'src/app/services/records.service';
 import { ViewRecordsModalComponent } from '../../modals/view-records-modal/view-records-modal.component';
 import { SettingsModalComponent } from '../../modals/settings-modal/settings-modal.component';
@@ -9,6 +7,10 @@ import { AuthService } from 'src/app/services/auth.service';
 import { ApiUrlModalComponent } from '../../modals/api-url-modal/api-url-modal.component';
 import { environment } from 'src/environments/environment';
 import { LicenseKeyModalComponent } from '../../modals/license-key-modal/license-key-modal.component';
+// import * as pdfjsLib from 'pdfjs-dist';
+
+// Set the worker source for pdf.js
+// pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdf.worker.min.mjs';
 
 interface Document {
   id?: number;
@@ -17,12 +19,9 @@ interface Document {
   last_name: string;
   suffix?: string;
   document_type: string;
-  image_url: string;
-  front_url: string;
-  back_url: string;
-  processedTiffUrl?: string;
-  processedFrontUrl?: string;
-  processedBackUrl?: string;
+  pdf_url: string;
+  processedPdfUrl?: string;
+  thumbnailUrl?: string; // Add thumbnail URL to store the generated thumbnail
 }
 
 @Component({
@@ -39,7 +38,6 @@ export class RecordsPage implements OnInit {
   isLoadingMore: boolean = false;
   currentPage: number = 1;
   lastPage: number = 1;
-  private tiffCache: Map<string, string> = new Map();
   defaultApiUrl = environment.apiUrl;
   defaultLicenseKey = environment.licenseKey;
 
@@ -50,18 +48,12 @@ export class RecordsPage implements OnInit {
     private authService: AuthService
   ) {}
 
-  /**
-   * Initializes the component and loads initial documents.
-   */
   async ngOnInit(): Promise<void> {
     this.isLoading = true;
     await this.loadDocuments();
     this.isLoading = false;
   }
 
-  /**
-   * Loads documents for the current page.
-   */
   private async loadDocuments(): Promise<void> {
     try {
       const response = await this.recordsService.getDocumentsByPage(
@@ -72,27 +64,33 @@ export class RecordsPage implements OnInit {
       // Sanitize URLs to fix duplicate "localhost" issue
       newDocuments = newDocuments.map((doc) => ({
         ...doc,
-        image_url: this.sanitizeUrl(doc.image_url),
-        front_url: this.sanitizeUrl(doc.front_url),
-        back_url: this.sanitizeUrl(doc.back_url),
+        pdf_url: this.sanitizeUrl(doc.pdf_url),
       }));
 
       this.documents = [...this.documents, ...newDocuments];
       this.filteredDocuments = [...this.documents];
       this.lastPage = response.data?.last_page ?? 1;
 
-      // Process TIFF images
+      // Process PDFs to generate thumbnails
       for (const doc of newDocuments) {
-        if (this.isTiff(doc.image_url)) {
-          doc.processedTiffUrl = await this.convertTiffToBase64(doc.image_url);
-        }
-        if (this.isTiff(doc.front_url)) {
-          doc.processedFrontUrl = await this.convertTiffToBase64(doc.front_url);
-        }
-        if (this.isTiff(doc.back_url)) {
-          doc.processedBackUrl = await this.convertTiffToBase64(doc.back_url);
+        if (this.isPdf(doc.pdf_url)) {
+          try {
+            // const thumbnailUrl = await this.generatePdfThumbnail(doc.pdf_url);
+            doc.thumbnailUrl = this.getFallbackImage();
+          } catch (error) {
+            console.error(
+              `Failed to generate thumbnail for ${doc.pdf_url}:`,
+              error
+            );
+            doc.thumbnailUrl = this.getFallbackImage();
+          }
+        } else {
+          doc.thumbnailUrl = this.getFallbackImage();
         }
       }
+
+      // Update filtered documents to reflect thumbnail URLs
+      this.filteredDocuments = [...this.documents];
     } catch (error: any) {
       console.error('Failed to load documents:', error);
       this.documents = [];
@@ -102,37 +100,53 @@ export class RecordsPage implements OnInit {
   }
 
   /**
-   * Sanitizes a URL to remove duplicate "localhost" segments.
-   * @param url The input URL.
-   * @returns The sanitized URL.
+   * Generates a thumbnail from the first page of a PDF.
+   * @param pdfUrl The URL of the PDF file.
+   * @returns A data URL representing the thumbnail image, or null if failed.
    */
-  // private sanitizeUrl(url: string): string {
-  //   if (!url) return url;
+  // private async generatePdfThumbnail(pdfUrl: string): Promise<string | null> {
+  //   try {
+  //     // Load the PDF document
+  //     const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+  //     const page = await pdf.getPage(1); // Get the first page
 
-  //   // If URL already starts with http/https, return as-is
-  //   if (url.startsWith('http://') || url.startsWith('https://')) {
-  //     return url.replace(
-  //       /https:\/\/localhost\/localhost\//g,
-  //       'https://localhost/'
-  //     );
+  //     // Set the viewport for rendering (scale to create a thumbnail)
+  //     const scale = 0.5; // Adjust scale for thumbnail size
+  //     const viewport = page.getViewport({ scale });
+
+  //     // Create a canvas to render the page
+  //     const canvas = document.createElement('canvas');
+  //     const context = canvas.getContext('2d');
+  //     if (!context) {
+  //       throw new Error('Failed to get canvas context');
+  //     }
+
+  //     canvas.height = viewport.height;
+  //     canvas.width = viewport.width;
+
+  //     // Render the PDF page to the canvas
+  //     await page.render({
+  //       canvasContext: context,
+  //       viewport: viewport,
+  //     }).promise;
+
+  //     // Convert the canvas to a data URL (thumbnail image)
+  //     const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8); // Use JPEG with 80% quality
+
+  //     // Clean up
+  //     pdf.destroy();
+  //     canvas.remove();
+
+  //     return thumbnailUrl;
+  //   } catch (error) {
+  //     console.error('Error generating PDF thumbnail:', error);
+  //     return null;
   //   }
-
-  //   // If URL starts with 'localhost/', add protocol
-  //   if (url.startsWith('localhost/')) {
-  //     return `https://localhost/${url.replace(/^localhost\//, '')}`;
-  //   }
-
-  //   // If it starts with '/storage', assume local path and add localhost
-  //   if (url.startsWith('/storage')) {
-  //     return `https://localhost${url}`;
-  //   }
-
-  //   return url;
   // }
+
   private sanitizeUrl(url: string): string {
     if (!url) return url;
 
-    // Replace 'localhost' with local IP
     const localServer = 'https://192.168.100.123';
     if (url.startsWith('localhost/')) {
       return `${localServer}/${url.replace('localhost/', '')}`;
@@ -144,94 +158,10 @@ export class RecordsPage implements OnInit {
     return url;
   }
 
-  /**
-   * Checks if a URL is a TIFF file.
-   * @param url The file URL.
-   */
-  isTiff(url: string): boolean {
-    return (
-      url?.toLowerCase().endsWith('.tif') ||
-      url?.toLowerCase().endsWith('.tiff')
-    );
+  isPdf(url: string): boolean {
+    return url?.toLowerCase().endsWith('.pdf');
   }
 
-  /**
-   * Converts a TIFF URL to base64, using cache if available.
-   * @param tiffUrl The TIFF file URL.
-   */
-  async convertTiffToBase64(tiffUrl: string): Promise<string> {
-    if (!tiffUrl) {
-      console.warn('No TIFF URL provided');
-      return this.getFallbackImage();
-    }
-
-    if (this.tiffCache.has(tiffUrl)) {
-      return this.tiffCache.get(tiffUrl)!;
-    }
-
-    try {
-      const response = await fetch(tiffUrl);
-      if (!response.ok) {
-        throw new Error(
-          `HTTP error ${response.status}: ${response.statusText}`
-        );
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const ifds = UTIF.decode(arrayBuffer);
-
-      if (!ifds || ifds.length === 0) {
-        throw new Error('No images found in TIFF');
-      }
-
-      const firstImage = ifds[0];
-      UTIF.decodeImage(arrayBuffer, firstImage);
-
-      if (
-        !firstImage ||
-        !Number.isFinite(firstImage.width) ||
-        !Number.isFinite(firstImage.height) ||
-        firstImage.width <= 0 ||
-        firstImage.height <= 0
-      ) {
-        throw new Error(
-          `Invalid image dimensions: width=${
-            firstImage?.width ?? 'undefined'
-          }, height=${firstImage?.height ?? 'undefined'}`
-        );
-      }
-
-      const rgba = UTIF.toRGBA8(firstImage);
-      const canvas = document.createElement('canvas');
-      canvas.width = firstImage.width;
-      canvas.height = firstImage.height;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        throw new Error('Could not get canvas context');
-      }
-
-      const imgData = ctx.createImageData(canvas.width, canvas.height);
-      imgData.data.set(rgba);
-      ctx.putImageData(imgData, 0, 0);
-
-      const base64 = canvas.toDataURL('image/png');
-      this.tiffCache.set(tiffUrl, base64);
-      return base64;
-    } catch (error: any) {
-      console.error(`Failed to convert TIFF at ${tiffUrl}:`, error.message);
-      const fallback = this.getFallbackImage();
-      // Only cache fallback if the error is not transient (e.g., network issue)
-      if (!error.message.includes('HTTP error')) {
-        this.tiffCache.set(tiffUrl, fallback);
-      }
-      return fallback;
-    }
-  }
-
-  /**
-   * Returns a fallback image URL.
-   */
   private getFallbackImage(): string {
     return 'https://picsum.photos/1200/800?r=' + Math.random();
   }
@@ -263,16 +193,12 @@ export class RecordsPage implements OnInit {
    * @param doc The document to view.
    */
   async openDocumentModal(doc: Document): Promise<void> {
-    const isTiffImage = this.isTiff(doc.image_url);
-    const isTiffFront = this.isTiff(doc.front_url);
-    const isTiffBack = this.isTiff(doc.back_url);
+    const isPdfImage = this.isPdf(doc.pdf_url);
     const modal = await this.modalController.create({
       component: ViewRecordsModalComponent,
       componentProps: {
         document: doc,
-        isTiffImage,
-        isTiffFront,
-        isTiffBack,
+        isPdfImage,
       },
     });
     await modal.present();

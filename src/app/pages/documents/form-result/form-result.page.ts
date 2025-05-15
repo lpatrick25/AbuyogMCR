@@ -169,95 +169,58 @@ export class FormResultPage implements OnInit {
   }
 
   /**
-   * Exports the document as TIFF and PDF and submits it.
+   * Exports the document as PDF and PDF and submits it.
    */
   async onExport(): Promise<void> {
     if (!this.document?.uuid) {
       await this.utils.showErrorAlert('Document UUID is missing');
       return;
     }
+
     this.loading = true;
-    const tiffFileUris: string[] = [];
-    const errors: string[] = [];
 
     try {
       const documentResult = await ScanbotSDK.Document.loadDocument({
         documentID: this.document.uuid,
       });
 
-      // Ensure exactly two pages (front and back)
-      if (documentResult.pages.length < 2) {
+      const pageCount = documentResult.pages.length;
+
+      if (pageCount < 2) {
         await this.utils.showErrorAlert(
           'Document must have at least two pages (front and back)'
         );
         return;
       }
-      if (documentResult.pages.length > 2) {
+
+      if (pageCount > 2) {
         await this.utils.showErrorAlert(
           'Document has more than two pages. Please provide only front and back'
         );
         return;
       }
 
-      // Process front and back pages
-      const pagesToProcess = [
-        { page: documentResult.pages[0], label: 'front' },
-        { page: documentResult.pages[1], label: 'back' },
-      ];
+      const ocrConfiguration: OCRConfiguration = {
+        engineMode: 'SCANBOT_OCR',
+      };
 
-      for (const { page, label } of pagesToProcess) {
-        if (!page.documentImageURI) {
-          errors.push(
-            `${label.charAt(0).toUpperCase() + label.slice(1)} page (${
-              page.uuid
-            }): No document image URI`
-          );
-          continue;
-        }
-        try {
-          const tiffResult = await ScanbotSDK.writeTIFF({
-            imageFileUris: [page.documentImageURI],
-            options: {
-              binarizationFilter: undefined,
-              dpi: 300,
-              compression: 'ADOBE_DEFLATE',
-            },
-          });
-          if (tiffResult.status === 'OK' && tiffResult.tiffFileUri) {
-            tiffFileUris.push(tiffResult.tiffFileUri);
-          } else {
-            throw new Error('TIFF generation failed');
-          }
-        } catch (err: any) {
-          console.error(
-            `Error creating TIFF for ${label} page ${page.uuid}:`,
-            err
-          );
-          errors.push(
-            `${label.charAt(0).toUpperCase() + label.slice(1)} page (${
-              page.uuid
-            }): ${err.message}`
-          );
-        }
-      }
+      const pdfResult = await ScanbotSDK.Document.createPDF({
+        documentID: this.document.uuid,
+        options: {
+          pageSize: 'LEGAL',
+          pageDirection: 'PORTRAIT',
+          ocrConfiguration,
+          pageFitMode: 'FILL_IN',
+        },
+      });
 
-      if (errors.length > 0) {
-        await this.utils.showErrorAlert(
-          `Failed to process pages:\n${errors.join('\n')}`
-        );
-        return;
-      }
-
-      if (tiffFileUris.length !== 2) {
-        await this.utils.showErrorAlert(
-          'Failed to generate exactly two TIFF files (front and back)'
-        );
-        return;
+      if (pdfResult.status !== 'OK' || !pdfResult.pdfFileUri) {
+        throw new Error('PDF generation failed');
       }
 
       await this.recordService.submitDocument(
         this.formSubmission,
-        tiffFileUris
+        pdfResult.pdfFileUri
       );
 
       await this.utils.showInfoAlert('Document uploaded successfully!');
